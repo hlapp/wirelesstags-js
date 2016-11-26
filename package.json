@@ -1,0 +1,23 @@
+{
+  "name": "node-wirelesstags",
+  "version": "0.0.1",
+  "description": "Interface to the WirelessTags platform (http://wirelesstags.com)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hlapp/node-wirelesstags.git"
+  },
+  "keywords": [
+    "wirelesstags",
+    "iot"
+  ],
+  "author": "Hilmar Lapp <hilmar@lappland.io>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hlapp/node-wirelesstags/issues"
+  },
+  "homepage": "https://github.com/hlapp/node-wirelesstags#readme"
+}

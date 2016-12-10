@@ -1,5 +1,5 @@
 {
-  "name": "wirelesstags-js",
+  "name": "wirelesstags",
   "version": "0.0.9",
   "description": "Interface to the Wireless Sensor Tags platform (http://wirelesstags.com)",
   "main": "index.js",

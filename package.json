@@ -1,6 +1,6 @@
 {
   "name": "wirelesstags",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "description": "Interface to the Wireless Sensor Tags platform (http://wirelesstags.com)",
   "main": "index.js",
   "scripts": {
@@ -19,5 +19,9 @@
   "bugs": {
     "url": "https://github.com/hlapp/wirelesstags-js/issues"
   },
-  "homepage": "https://github.com/hlapp/wirelesstags-js#readme"
+  "homepage": "https://github.com/hlapp/wirelesstags-js#readme",
+  "dependencies": {
+    "request": ">=2.79.0",
+    "deep-equal": ">=1.0.1"
+  }
 }

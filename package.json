@@ -4,7 +4,9 @@
   "description": "Interface to the Wireless Sensor Tags platform (http://wirelesstags.com)",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "lint": "jshint index.js lib/*.js test/*.js",
+    "pretest": "npm run lint"
   },
   "repository": {
     "type": "git",
@@ -27,6 +29,7 @@
   "devDependencies": {
     "chai": "*",
     "chai-as-promised": "^6.0.0",
+    "jshint": "^2.9.4",
     "mocha": "*",
     "sinon": "^1.17.6",
     "sinon-chai": "^2.8.0"

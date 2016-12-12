@@ -4,7 +4,7 @@
   "description": "Interface to the Wireless Sensor Tags platform (http://wirelesstags.com)",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -23,5 +23,12 @@
   "dependencies": {
     "request": ">=2.79.0",
     "deep-equal": ">=1.0.1"
+  },
+  "devDependencies": {
+    "chai": "*",
+    "chai-as-promised": "^6.0.0",
+    "mocha": "*",
+    "sinon": "^1.17.6",
+    "sinon-chai": "^2.8.0"
   }
 }

@@ -45,6 +45,6 @@ WirelessTagPlatform.create = function(options) {
         config[key] = options[key];
     }
     return new WirelessTagPlatform(config);
-}
+};
 
 module.exports = WirelessTagPlatform;

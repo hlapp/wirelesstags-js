@@ -17,7 +17,7 @@ describe('platform functions:', function() {
             return ! (pf.config
                       && ((pf.config.username && pf.config.password)
                           || pf.config.bearer));
-        }
+        };
     });
 
     describe('#isConnected()', function() {

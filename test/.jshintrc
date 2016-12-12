@@ -1,0 +1,10 @@
+{
+    "extends": "../.jshintrc",
+    "predef": [
+        "describe",
+        "it",
+        "expect",
+        "before",
+        "sinon"
+    ]
+}

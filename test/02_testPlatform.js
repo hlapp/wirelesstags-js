@@ -7,17 +7,15 @@
 describe('platform functions:', function() {
 
     var WirelessTagManager,
+        WirelessTagPlatform,
         platform;
     var tagManagers = [];
+    var credentialsMissing = false;
 
     before('load platform module', function() {
-        platform = require('../').create();
+        WirelessTagPlatform = require('../');
         WirelessTagManager = require('../lib/tagmanager.js');
-        this.credentialsMissing = function(pf) {
-            return ! (pf.config
-                      && ((pf.config.username && pf.config.password)
-                          || pf.config.bearer));
-        };
+        platform = WirelessTagPlatform.create();
     });
 
     describe('#isConnected()', function() {
@@ -36,15 +34,22 @@ describe('platform functions:', function() {
         let connectSpy = sinon.spy();
         
         it('should connect to the cloud API', function() {
-            // skip this if we don't have connection information
-            if (this.credentialsMissing(platform)) return this.skip();
+            let connOpts = WirelessTagPlatform.loadConfig();
+
+            if (! ((connOpts.username && connOpts.password)
+                   || connOpts.bearer)) {
+                // skip this if we don't have authentication information
+                credentialsMissing = true;
+                return this.skip();
+            }
 
             platform.on('connect', connectSpy);
-            return expect(platform.connect()).to.eventually.equal(platform);
+            return expect(platform.connect(connOpts)).to.
+                eventually.equal(platform);
         });
         it('should emit "connect" event upon connection', function() {
             // skip this if we don't have connection information
-            if (this.credentialsMissing(platform)) return this.skip();
+            if (credentialsMissing) return this.skip();
 
             expect(connectSpy).to.have.been.calledWith(platform);
         });
@@ -55,7 +60,7 @@ describe('platform functions:', function() {
         
         it('should look for tag managers', function() {
             // skip this if we don't have connection information
-            if (this.credentialsMissing(platform)) return this.skip();
+            if (credentialsMissing) return this.skip();
 
             platform.on('discover', discoverSpy);
             platform.on('discover', (manager) => {
@@ -65,7 +70,7 @@ describe('platform functions:', function() {
         });
         it('should emit "discover" event for each tag manager', function() {
             // skip this if we don't have connection information
-            if (this.credentialsMissing(platform)) return this.skip();
+            if (credentialsMissing) return this.skip();
 
             expect(discoverSpy).to.have.always.been.calledWith(
                 sinon.match.instanceOf(WirelessTagManager));

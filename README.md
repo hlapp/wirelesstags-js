@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/hlapp/wirelesstags-js.svg?branch=master)](https://travis-ci.org/hlapp/wirelesstags-js)
+
 # wirelesstags-js - JavaScript API for the Wireless Sensor Tags platform
 
 Aims to provide a well-structured API to the [Wireless Sensor Tag]

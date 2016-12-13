@@ -19,7 +19,8 @@ const ENV_TOKEN = "WIRELESSTAG_API_TOKEN";
 
 WirelessTagPlatform.loadConfig = function() {
     let config = {};
-    let confPath = path.join(os.homedir(), CONFIG_NAME);
+    let confPath = path.join(os.homedir ? os.homedir() : process.env.HOME,
+                             CONFIG_NAME);
     try {
         let confContent = fs.readFileSync(confPath, 'utf8');
         config = JSON.parse(confContent);

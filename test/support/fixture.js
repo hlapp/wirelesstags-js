@@ -4,12 +4,10 @@
  * Test fixture of common setup and other functions
  */
 
-var chai = require('chai'),
-    chaiAsPromised = require('chai-as-promised'),
-    sinonChai = require('sinon-chai');
+var chai = require('chai');
 
-chai.use(chaiAsPromised);
-chai.use(sinonChai);
+chai.use(require('chai-as-promised'));
+chai.use(require('sinon-chai'));
 
 global.expect = chai.expect;
 global.sinon = require('sinon');

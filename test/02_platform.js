@@ -4,7 +4,7 @@
  * Test functions of the platform object
  */
 
-describe('platform functions:', function() {
+describe('WirelessTagPlatform:', function() {
 
     var WirelessTagManager,
         WirelessTagPlatform,

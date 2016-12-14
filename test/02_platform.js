@@ -63,9 +63,6 @@ describe('platform functions:', function() {
             if (credentialsMissing) return this.skip();
 
             platform.on('discover', discoverSpy);
-            platform.on('discover', (manager) => {
-                tagManagers.push(manager);
-            }); 
             return expect(platform.discoverTagManagers()).to.be.fulfilled;
         });
         it('should emit "discover" event for each tag manager', function() {

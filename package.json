@@ -1,6 +1,6 @@
 {
   "name": "wirelesstags",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Interface to the Wireless Sensor Tags platform (http://wirelesstags.com)",
   "main": "index.js",
   "scripts": {

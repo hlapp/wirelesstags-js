@@ -122,7 +122,7 @@ describe('WirelessTagManager:', function() {
     });
 
     describe('#select()', function() {
-        it('should select it for API calls - normally done automatically',
+        it('should promise to select it for API calls - happens automatically',
            function() {
                // skip this if we don't have connection information
                if (credentialsMissing) return this.skip();
@@ -141,7 +141,7 @@ describe('WirelessTagManager:', function() {
     describe('#discoverTags()', function() {
         let discoverSpy = sinon.spy();
         
-        it('should find tags associated with it', function() {
+        it('should promise an array of tags associated with it', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
 

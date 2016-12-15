@@ -49,6 +49,12 @@ describe('WirelessTagManager:', function() {
             expect(tagManager.mac).to.be.a('string').
                 and.to.have.length.within(10,14);     // 12 in theory?
         });
+        it('should be read-only', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            return expect(() => { tagManager.mac = "JX"; }).to.throw(TypeError);
+        });
     });
     describe('#name', function() {
         it('a string, its (user-assigned) name', function() {
@@ -66,6 +72,12 @@ describe('WirelessTagManager:', function() {
 
             expect(tagManager.online).to.be.a('boolean');
         });
+        it('should be read-only', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            return expect(() => { tagManager.online = false; }).to.throw(TypeError);
+        });
     });
     describe('#selected', function() {
         it('a boolean, whether it is currently selected', function() {
@@ -73,6 +85,12 @@ describe('WirelessTagManager:', function() {
             if (credentialsMissing) return this.skip();
 
             expect(tagManager.selected).to.be.a('boolean');
+        });
+        it('should be read-only', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            return expect(() => { tagManager.selected = false; }).to.throw(TypeError);
         });
     });
     describe('#wirelessConfig', function() {
@@ -110,6 +128,12 @@ describe('WirelessTagManager:', function() {
             // normally these are around 150
             expect(Number(tagManager.radioId)).to.be.within(100,200);
         });
+        it('should be read-only', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            return expect(() => { tagManager.radioId = 0; }).to.throw(TypeError);
+        });
     });
     describe('#rev', function() {
         it('a number, should be its revision', function() {
@@ -118,6 +142,12 @@ describe('WirelessTagManager:', function() {
 
             expect(tagManager.rev).to.be.a('number').
                 and.to.be.below(256);     // byte
+        });
+        it('should be read-only', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            return expect(() => { tagManager.rev = 0; }).to.throw(TypeError);
         });
     });
 
@@ -182,6 +212,12 @@ describe('WirelessTag:', function() {
                 expect(value).to.be.a('string').and.have.lengthOf(36);
             });
         });
+        it('should be read-only', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            return expect(() => { tags[0].uuid = "xzy"; }).to.throw(TypeError);
+        });
     });
 
     describe('#name', function() {
@@ -205,6 +241,12 @@ describe('WirelessTag:', function() {
                    return expect(value).to.be.a('number').and.to.be.below(256);
                });
            });
+        it('should be read-only', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            return expect(() => { tags[0].slaveId = -1; }).to.throw(TypeError);
+        });
     });
 
     describe('#alive', function() {
@@ -215,6 +257,12 @@ describe('WirelessTag:', function() {
             tags.map((tag) => { return tag.alive }).forEach((value) => {
                 return expect(value).to.be.a('boolean');
             });
+        });
+        it('should be read-only', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            return expect(() => { tags[0].alive = false; }).to.throw(TypeError);
         });
     });
 
@@ -227,6 +275,12 @@ describe('WirelessTag:', function() {
                 return expect(value).to.be.a('number').and.to.be.below(256);
             });
         });
+        it('should be read-only', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            return expect(() => { tags[0].tagType = 0; }).to.throw(TypeError);
+        });
     });
 
     describe('#rev', function() {
@@ -237,6 +291,12 @@ describe('WirelessTag:', function() {
             tags.map((tag) => { return tag.rev }).forEach((value) => {
                 return expect(value).to.be.a('number').and.to.be.below(256);
             });
+        });
+        it('should be read-only', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            return expect(() => { tags[0].rev = 0; }).to.throw(TypeError);
         });
     });
 

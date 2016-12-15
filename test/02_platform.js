@@ -66,7 +66,12 @@ describe('WirelessTagPlatform:', function() {
             if (credentialsMissing) return this.skip();
 
             platform.on('discover', discoverSpy);
-            return expect(platform.discoverTagManagers()).to.be.fulfilled;
+            return expect(platform.discoverTagManagers()).
+                to.eventually.satisfy((mgrs) => {
+                    return mgrs.reduce((state, mgr) => {
+                        return state && (mgr instanceof WirelessTagManager);
+                    }, mgrs.length > 0);
+                });
         });
         it('should emit "discover" event for each tag manager', function() {
             // skip this if we don't have connection information

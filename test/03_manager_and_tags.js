@@ -130,7 +130,7 @@ describe('WirelessTagManager:', function() {
                return expect(tagManager.select()).
                    to.eventually.equal(tagManager);
            });
-        it('selected property should be true afterwards', function() {
+        it('property "selected" should be true afterwards', function() {
                // skip this if we don't have connection information
                if (credentialsMissing) return this.skip();
                
@@ -149,7 +149,12 @@ describe('WirelessTagManager:', function() {
             tagManager.on('discover', (tag) => {
                 tags.push(tag);
             });
-            return expect(tagManager.discoverTags()).to.be.fulfilled;
+            return expect(tagManager.discoverTags()).
+                to.eventually.satisfy((tags) => {
+                    return tags.reduce((state, tag) => {
+                        return state && (tag instanceof WirelessTag);
+                    }, tags.length > 0);
+                });
         });
         it('should emit "discover" event for each associated tag', function() {
             // skip this if we don't have connection information

@@ -203,6 +203,12 @@ describe('WirelessTagManager:', function() {
 
 describe('WirelessTag:', function() {
 
+    var WirelessTagSensor;
+
+    before('load modules', function() {
+        WirelessTagSensor = require('../lib/sensor.js');
+    });
+
     describe('#uuid', function() {
         it('a string, its unique identifier as a UUID', function() {
             // skip this if we don't have connection information
@@ -312,6 +318,258 @@ describe('WirelessTag:', function() {
                                                                         7200);
             });
         });
+    });
+
+    describe('#sensorCapabilities()', function() {
+        it('array of strings, sensor types the tag has', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            tags.map((tag) => {
+                return tag.sensorCapabilities();
+            }).forEach((value) => {
+                return expect(value).to.satisfy((caps) => {
+                    return caps.reduce((state, cap) => {
+                        return state && ('string' === typeof cap);
+                    }, caps.length > 0);
+                });
+            });
+        });
+    });
+
+    describe('#hardwareFacts()', function() {
+        it('array of facts that return true for the tag', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            tags.forEach((tag) => {
+                expect(tag.hardwareFacts()).to.satisfy((feats) => {
+                    return feats.reduce((state, feat) => {
+                        return state
+                            && ('string' === typeof feat)
+                            && (tag[feat]() === true);
+                    }, feats.length > 0);
+                });
+            });
+        });
+    });
+
+    describe('#lastUpdated()', function() {
+        it('a Date, time when the tag data were last updated', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            tags.map((tag) => {
+                return tag.lastUpdated();
+            }).forEach((theDate) => {
+                return expect(theDate).to.be.instanceOf(Date);
+            });
+        });
+        it('should not be much older than the updateInterval', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            tags.forEach((tag) => {
+                expect(tag.lastUpdated().getTime()).
+                    to.be.at.least(Date.now() - 1200 * tag.updateInterval);
+                                                // 1000 (s -> ms) + 20%
+            });
+        });
+    });
+
+    describe('#discoverSensors()', function() {
+        let discoverSpy = sinon.spy();
+        let sensors = [];
+        let numSensors = 0;
+        let tag;
+
+        it("should promise an array of the tag's sensors", function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            tag = tags[0]; // choose the tag with the most sensors
+            let l = tag.sensorCapabilities.length;
+            for (let t of tags) {
+                if (t.sensorCapabilities().length > l) {
+                    tag = t;
+                }
+            }
+
+            tag.on('discover', discoverSpy);
+            tag.on('discover', (sensor) => {
+                sensors.push(sensor);
+            });
+            return expect(tag.discoverSensors()).
+                to.eventually.satisfy((s_arr) => {
+                    numSensors = s_arr.length; // store for subsequent testing
+                    return s_arr.reduce((state, sensor) => {
+                        return state && (sensor instanceof WirelessTagSensor);
+                    }, s_arr.length > 0);
+                });
+        });
+        it('should emit "discover" event for each new sensor', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            expect(discoverSpy).to.have.always.been.calledWith(
+                sinon.match.instanceOf(WirelessTagSensor));
+        });
+        it('initially all the tag\'s sensors are new and trigger "discover"',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               expect(discoverSpy).to.have.callCount(numSensors);
+           });
+        it("should promise all of tag's sensors when called again", function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            // reset the event callback spy for next test
+            tag.removeAllListeners('discover');
+            discoverSpy = sinon.spy();
+            tag.on('discover', discoverSpy);
+
+            return expect(tag.discoverSensors()).
+                to.eventually.have.lengthOf(numSensors);
+        });
+        it('should not emit "discover" on sensors discovered previously',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               return expect(discoverSpy).to.not.have.been.called;
+           });
+    });
+});
+
+/*
+ * Test functions of the sensor object
+ */
+
+describe('WirelessTagSensor:', function() {
+
+    var WirelessTagSensor;
+    var sensors = [];
+
+    before('load modules', function() {
+        WirelessTagSensor = require('../lib/sensor.js');
+
+        // gather up a list of sensors that are all different, regardless
+        // of the tag they belong to
+        let sensorTypeMap = {};
+        tags.forEach((tag) => {
+            tag.eachSensor((sensor) => {
+                let key = sensor.sensorType;
+                if (tag.isPhysicalTag()) key += '-phys';
+                switch (sensor.sensorType) {
+                case 'motion':
+                case 'event':
+                    if (tag.hasAccelerometer()) key += "-accel";
+                    if (tag.canMotionTimeout()) key += "-hmc";
+                    break;
+                case 'temp':
+                    if (tag.isHTU()) key += '-htu';
+                    break;
+                }
+                if (!sensorTypeMap[key]) {
+                    sensorTypeMap[key] = true;
+                    sensors.push(sensor);
+                }
+            });
+        });
+    });
+
+    describe('#reading', function() {
+        let readingTypeMap = {
+            'number': ['temp','humidity','moisture','light','signal','battery'],
+            'string': ['event'],
+            'boolean': ['water','outofrange']
+        };
+        Object.keys(readingTypeMap).forEach(function(readingType) {
+            let matchingSensors = sensors.filter((s) => {
+                return readingTypeMap[readingType].indexOf(s.sensorType) >= 0;
+            });
+            it('should be a ' + readingType + ' for '
+               + readingTypeMap[readingType] + ' sensors',
+               function() {
+                   // skip this if we don't have connection information
+                   if (credentialsMissing) return this.skip();
+
+                   matchingSensors.map((sensor) => {
+                       return sensor.reading;
+                   }).forEach((value) => {
+                       expect(value).to.be.a(readingType);
+                   });
+               });
+            it('should be read-only for these', function() {
+                // skip this if we don't have connection information
+                if (credentialsMissing) return this.skip();
+
+                return expect(() => {
+                    matchingSensors[0].reading = "xzy";
+                }).to.throw(TypeError);
+            });
+        });
+    });
+
+    describe('#eventState', function() {
+        let sensorsNE = sensors.filter((s) => {
+            return s.sensorType === 'motion' || s.sensorType === 'signal';
+        });
+        let sensorsWE = sensors.filter((s) => {
+            return s.sensorType !== 'motion' && s.sensorType !== 'signal';
+        });
+        it('should be a string except for motion and signal sensors', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            sensorsWE.map((sensor) => {
+                return sensor.eventState;
+            }).forEach((value) => {
+                return expect(value).to.be.a('string');
+            });
+        });
+        it('should be read-only for these', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            return expect(() => {
+                sensorsWE[0].eventState = "xzy";
+            }).to.throw(TypeError);
+        });
+        it('should be undefined for motion and signal sensors', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            sensorsNE.map((sensor) => {
+                return sensor.eventState;
+            }).forEach((value) => {
+                return expect(value).to.be.undefined;
+            });
+        });
+        it('should be read-only for these', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            return expect(() => {
+                sensorsNE[0].eventState = "xzy";
+            }).to.throw(TypeError);
+        });
+    });
+
+    describe('#isArmed()', function() {
+        it('should be a boolean except for motion and signal sensors',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               sensors.filter((s) => {
+                   return s.eventState !== undefined;
+               }).forEach((sensor) => {
+                   return expect(sensor.isArmed()).to.be.a('boolean');
+               });
+           });
     });
 
 });

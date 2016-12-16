@@ -85,7 +85,7 @@ platform.on('connect', () => {
     console.log("connected to Wireless Tag cloud");
     platform.discoverTagManagers();
 });
-platform.on(discover', (tagManager) => {
+platform.on('discover', (tagManager) => {
     console.log("found tag manager", tagManager.name, tagManager.mac);
 });
 // once the listeners are set up we can connect

@@ -1,6 +1,6 @@
 {
   "name": "wirelesstags",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Interface to the Wireless Sensor Tags platform (http://wirelesstags.com)",
   "main": "index.js",
   "scripts": {
@@ -13,7 +13,7 @@
     "url": "git+https://github.com/hlapp/wirelesstags-js.git"
   },
   "keywords": [
-    "wirelesstags",
+    "wirelesstag",
     "iot"
   ],
   "author": "Hilmar Lapp <hilmar@lappland.io>",

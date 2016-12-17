@@ -13,6 +13,33 @@ code can change quickly, including the API. Use at your own peril. The
 tests are likely to show a more up to date and more complete
 description of the API than this document.
 
+## Installation and setup
+
+```sh
+$ npm install wirelesstags
+```
+
+The library (specifically, the `platform.connect()` method, see
+below) will need authentication information. The library supports two
+default ways to pick up this information:
+
+1. A file `$HOME/.wirelesstags` in JSON format, with the necessary
+   authentication information (currently keys `username` and
+   `password`). This file should obviously be readable only by the
+   user running the app.
+2. Environment variables `WIRELESSTAG_API_USER` and
+   `WIRELESSTAG_API_PASSWORD`, if set, will override whatever is found
+   in the default options file.
+
+It is strongly recommended to create a separate account as a "limited
+user" for using this library rather than your main account(s) at
+Wirelesstag.com. This makes it easy to change the password or delete
+the account altogether if the password happens to leak out, and allows
+controlling which tag managers and tags are visible to the
+account. Note also that wirelesstag.com stores your password in clear
+text (you can verify by recovering it), and hence never use a password
+there that you use anywhere else.
+
 ## Usage
 
 ### Principle objects
@@ -74,7 +101,7 @@ Define or obtain connection options:
 
 ```javascript
 var opts = { username: 'foo@bar.com', password: 'supersecret' };
-// or load from default configurations or environment variables:
+// or load from default configuration file or environment variables:
 opts = WirelessTagPlatform.loadConfig();
 ```
 

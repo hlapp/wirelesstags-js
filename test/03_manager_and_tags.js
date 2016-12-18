@@ -637,4 +637,321 @@ describe('WirelessTagSensor:', function() {
            });
     });
 
+    describe('#monitoringConfig()', function() {
+
+        it('should be an object giving the tag\'s monitoring configuration',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               sensors.map((sensor) => {
+                   return sensor.monitoringConfig();
+               }).forEach((mconfig) => {
+                   return expect(mconfig).to.be.a('object');
+               });
+           });
+
+        it('should have \'notifySettings\' unless signal sensor',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return s.wirelessTag.isPhysicalTag()
+                       && s.sensorType !== 'signal';
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.map((sensor) => {
+                   return sensor.monitoringConfig().notifySettings;
+               }).forEach((value) => {
+                   return expect(value).to.be.an('object').
+                       and.to.contain.all.keys('email',
+                                               'useEmail',
+                                               'usePush',
+                                               'useSpeech',
+                                               'sound',
+                                               'noSound');
+               });
+           });
+
+        it('should have \'thresholds\' for temp, light, humidity, moisture, current',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return ['current','humidity','light','moisture','temp'].
+                       indexOf(s.sensorType) >= 0;
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.map((sensor) => {
+                   return sensor.monitoringConfig().thresholds;
+               }).forEach((value) => {
+                   return expect(value).to.be.an('object').
+                       and.to.contain.all.keys('lowValue',
+                                               'minLowReadings',
+                                               'highValue',
+                                               'minHighReadings',
+                                               'hysteresis');
+               });
+           });
+
+        it('should have only \'thresholds.lowValue\' for battery',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return s.sensorType === 'battery';
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.map((sensor) => {
+                   return sensor.monitoringConfig().thresholds;
+               }).forEach((value) => {
+                   return expect(value).to.be.an('object').
+                       and.to.have.all.keys('lowValue');
+               });
+           });
+
+        it('should have \'responsiveness\' for motion, event, humidity, moisture',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return ['humidity','event','moisture','motion'].
+                       indexOf(s.sensorType) >= 0;
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.map((sensor) => {
+                   return sensor.monitoringConfig().responsiveness;
+               }).forEach((value) => {
+                   return expect(value).to.be.oneOf(["Highest",
+                                                     "Medium high",
+                                                     "Medium",
+                                                     "Medium low",
+                                                     "Lowest"]);
+               });
+           });
+
+        it('should have \'monitoringInterval\' for temp and light',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return ['light','temp'].indexOf(s.sensorType) >= 0;
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.map((sensor) => {
+                   return sensor.monitoringConfig().monitoringInterval;
+               }).forEach((value) => {
+                   return expect(value).to.be.a('number').
+                       and.to.be.above(0);
+               });
+           });
+
+        it('should have \'monitoringEnabled\' for battery',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return s.sensorType === 'battery';
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.map((sensor) => {
+                   return sensor.monitoringConfig().monitoringEnabled;
+               }).forEach((value) => {
+                   return expect(value).to.be.a('boolean');
+               });
+           });
+
+        it('should have \'isDoorMode\' for event and motion',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return ['event','motion'].indexOf(s.sensorType) >= 0;
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.map((sensor) => {
+                   return sensor.monitoringConfig().isDoorMode;
+               }).forEach((value) => {
+                   return expect(value).to.be.a('boolean');
+               });
+           });
+
+        it('should have \'doorMode\' for event and motion',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return ['event','motion'].indexOf(s.sensorType) >= 0;
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.map((sensor) => {
+                   return sensor.monitoringConfig().doorMode;
+               }).forEach((value) => {
+                   return expect(value).to.be.an('object').
+                       and.to.contain.all.keys('angle',
+                                               'notifyWhenOpenFor',
+                                               'notifyOnClosed');
+               });
+           });
+
+        it('should have \'motionMode\' for event and motion',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return ['event','motion'].indexOf(s.sensorType) >= 0;
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.map((sensor) => {
+                   return sensor.monitoringConfig().motionMode;
+               }).forEach((value) => {
+                   return expect(value).to.be.an('object').
+                       and.to.contain.all.keys('timeoutOrResetAfter',
+                                               'timeoutMode');
+               });
+           });
+
+        it('should have \'orientation1\' for event and motion',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return ['event','motion'].indexOf(s.sensorType) >= 0;
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.map((sensor) => {
+                   return sensor.monitoringConfig().orientation1;
+               }).forEach((value) => {
+                   return expect(value).to.be.an('object').
+                       and.to.contain.all.keys('x','y','z');
+               });
+           });
+
+        it('should have \'sensitivity\' for event and motion',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return ['event','motion'].indexOf(s.sensorType) >= 0;
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.map((sensor) => {
+                   return sensor.monitoringConfig().sensitivity;
+               }).forEach((value) => {
+                   return expect(value).to.be.a('number').
+                       and.to.be.above(0);
+               });
+           });
+
+        it('should have \'armSilently\' for event and motion',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return ['event','motion'].indexOf(s.sensorType) >= 0;
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.map((sensor) => {
+                   return sensor.monitoringConfig().armSilently;
+               }).forEach((value) => {
+                   return expect(value).to.be.a('boolean');
+               });
+           });
+
+        it('should have \'calibration\' for humidity and moisture',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return ['humidity','moisture'].indexOf(s.sensorType) >= 0;
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.map((sensor) => {
+                   return sensor.monitoringConfig().calibration;
+               }).forEach((value) => {
+                   return expect(value).to.be.an('object').
+                       and.to.contain.all.keys('lowValue',
+                                               'lowCapacitance',
+                                               'highValue',
+                                               'highCapacitance');
+               });
+           });
+
+        it('should have \'unit\' for temp, which should be degC',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return s.sensorType === 'temp';
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.map((sensor) => {
+                   return sensor.monitoringConfig().unit;
+               }).forEach((value) => {
+                   return expect(value).to.be.a('string').and.to.equal('degC');
+               });
+           });
+
+        it('should have \'gracePeriod\' for outofrange',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return s.sensorType === 'outofrange';
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.map((sensor) => {
+                   return sensor.monitoringConfig().gracePeriod;
+               }).forEach((value) => {
+                   return expect(value).to.be.a('number').
+                       and.to.be.above(10);
+               });
+           });
+    });
+
 });

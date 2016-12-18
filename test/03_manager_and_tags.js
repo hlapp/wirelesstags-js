@@ -449,35 +449,50 @@ describe('WirelessTag:', function() {
 
 describe('WirelessTagSensor:', function() {
 
-    var WirelessTagSensor;
-    var sensors = [];
+    var sensors;
 
-    before('load modules', function() {
-        WirelessTagSensor = require('../lib/sensor.js');
-
+    before('find and distill list of sensors for testing', function(done) {
         // gather up a list of sensors that are all different, regardless
         // of the tag they belong to
-        let sensorTypeMap = {};
+        let proms = [];
         tags.forEach((tag) => {
-            tag.eachSensor((sensor) => {
-                let key = sensor.sensorType;
-                if (tag.isPhysicalTag()) key += '-phys';
-                switch (sensor.sensorType) {
-                case 'motion':
-                case 'event':
-                    if (tag.hasAccelerometer()) key += "-accel";
-                    if (tag.canMotionTimeout()) key += "-hmc";
-                    break;
-                case 'temp':
-                    if (tag.isHTU()) key += '-htu';
-                    break;
-                }
-                if (!sensorTypeMap[key]) {
-                    sensorTypeMap[key] = true;
-                    sensors.push(sensor);
-                }
-            });
+            let sensorList = tag.eachSensor();
+            if (sensorList.length > 0) {
+                proms.push(Promise.resolve(sensorList));
+            } else {
+                proms.push(tag.discoverSensors());
+            }
         });
+        Promise.all(proms).then(
+            (sensorLists) => {
+                let sensorTypeMap = {};
+                let sensorList = [];
+                sensorLists.forEach((list) => {
+                    sensorList = sensorList.concat(list);
+                });
+                sensors = [];
+                sensorList.forEach((sensor) => {
+                    let key = sensor.sensorType;
+                    let tag = sensor.wirelessTag;
+                    if (tag.isPhysicalTag()) key += '-phys';
+                    switch (sensor.sensorType) {
+                    case 'motion':
+                    case 'event':
+                        if (tag.hasAccelerometer()) key += "-accel";
+                        if (tag.canMotionTimeout()) key += "-hmc";
+                        break;
+                    case 'temp':
+                        if (tag.isHTU()) key += '-htu';
+                        break;
+                    }
+                    if (!sensorTypeMap[key]) {
+                        sensorTypeMap[key] = true;
+                        sensors.push(sensor);
+                    }
+                });
+                done();
+            }).catch((e) => { console.error(e.stack ? e.stack : e); done(); });
+
     });
 
     describe('#reading', function() {

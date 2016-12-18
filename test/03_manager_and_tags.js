@@ -501,17 +501,23 @@ describe('WirelessTagSensor:', function() {
             'string': ['event'],
             'boolean': ['water','outofrange']
         };
+        let toTest;
+
         Object.keys(readingTypeMap).forEach(function(readingType) {
-            let matchingSensors = sensors.filter((s) => {
-                return readingTypeMap[readingType].indexOf(s.sensorType) >= 0;
-            });
             it('should be a ' + readingType + ' for '
                + readingTypeMap[readingType] + ' sensors',
                function() {
                    // skip this if we don't have connection information
                    if (credentialsMissing) return this.skip();
 
-                   matchingSensors.map((sensor) => {
+                   toTest = sensors.filter((s) => {
+                       return readingTypeMap[readingType].
+                           indexOf(s.sensorType) >= 0;
+                   });
+                   // skip if there is nothing to test
+                   if (toTest.length === 0) this.skip();
+
+                   toTest.map((sensor) => {
                        return sensor.reading;
                    }).forEach((value) => {
                        expect(value).to.be.a(readingType);
@@ -520,44 +526,57 @@ describe('WirelessTagSensor:', function() {
             it('should be read-only for these', function() {
                 // skip this if we don't have connection information
                 if (credentialsMissing) return this.skip();
+                // skip if there is nothing to test
+                if (toTest.length === 0) this.skip();
 
                 return expect(() => {
-                    matchingSensors[0].reading = "xzy";
+                    toTest[0].reading = "xzy";
                 }).to.throw(TypeError);
             });
         });
     });
 
     describe('#eventState', function() {
-        let sensorsNE = sensors.filter((s) => {
-            return s.sensorType === 'motion' || s.sensorType === 'signal';
-        });
-        let sensorsWE = sensors.filter((s) => {
-            return s.sensorType !== 'motion' && s.sensorType !== 'signal';
-        });
-        it('should be a string except for motion and signal sensors', function() {
-            // skip this if we don't have connection information
-            if (credentialsMissing) return this.skip();
+        let toTest;
 
-            sensorsWE.map((sensor) => {
-                return sensor.eventState;
-            }).forEach((value) => {
-                return expect(value).to.be.a('string');
-            });
-        });
+        it('should be a string except for motion and signal sensors',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               toTest = sensors.filter((s) => {
+                   return ['motion','signal'].indexOf(s.sensorType) < 0;
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.map((sensor) => {
+                   return sensor.eventState;
+               }).forEach((value) => {
+                   return expect(value).to.be.a('string');
+               });
+           });
         it('should be read-only for these', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
+            // skip if there is nothing to test
+            if (toTest.length === 0) this.skip();
 
             return expect(() => {
-                sensorsWE[0].eventState = "xzy";
+                toTest[0].eventState = "xzy";
             }).to.throw(TypeError);
         });
         it('should be undefined for motion and signal sensors', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
 
-            sensorsNE.map((sensor) => {
+            toTest = sensors.filter((s) => {
+                return ['motion','signal'].indexOf(s.sensorType) >= 0;
+            });
+            // skip if there is nothing to test
+            if (toTest.length === 0) this.skip();
+
+            toTest.map((sensor) => {
                 return sensor.eventState;
             }).forEach((value) => {
                 return expect(value).to.be.undefined;
@@ -566,9 +585,11 @@ describe('WirelessTagSensor:', function() {
         it('should be read-only for these', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
+            // skip if there is nothing to test
+            if (toTest.length === 0) this.skip();
 
             return expect(() => {
-                sensorsNE[0].eventState = "xzy";
+                toTest[0].eventState = ["xzy"];
             }).to.throw(TypeError);
         });
     });
@@ -579,7 +600,13 @@ describe('WirelessTagSensor:', function() {
                // skip this if we don't have connection information
                if (credentialsMissing) return this.skip();
 
-               sensors.filter((s) => {
+               let toTest = sensors.filter((s) => {
+                   return s.eventState !== undefined;
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.filter((s) => {
                    return s.eventState !== undefined;
                }).forEach((sensor) => {
                    return expect(sensor.isArmed()).to.be.a('boolean');

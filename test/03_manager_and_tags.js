@@ -582,14 +582,37 @@ describe('WirelessTagSensor:', function() {
                 return expect(value).to.be.undefined;
             });
         });
-        it('should be read-only for these', function() {
+    });
+
+    describe('#eventStateValues', function() {
+        let toTest;
+
+        it('should be list of possible values for \'eventState\'',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               toTest = sensors.filter((s) => {
+                   return ['motion','signal'].indexOf(s.sensorType) < 0;
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.map((sensor) => {
+                   return [sensor.eventStateValues, sensor.eventState];
+               }).forEach((value) => {
+                   return expect(value[0]).to.be.an('array').
+                       and.to.include(value[1]);
+               });
+           });
+        it('should be read-only', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
             // skip if there is nothing to test
             if (toTest.length === 0) this.skip();
 
             return expect(() => {
-                toTest[0].eventState = ["xzy"];
+                toTest[0].eventStateValues = ["xzy"];
             }).to.throw(TypeError);
         });
     });

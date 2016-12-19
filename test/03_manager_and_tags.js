@@ -392,8 +392,10 @@ describe('WirelessTag:', function() {
 
             tags.forEach((tag) => {
                 expect(tag.lastUpdated().getTime()).
-                    to.be.at.least(Date.now() - 1200 * tag.updateInterval);
-                                                // 1000 (s -> ms) + 20%
+                    to.be.at.least(Date.now()
+                                   - tag.updateInterval * 1000
+                                   - 55 * 1000 /* time cloud is about behind */
+                                   - 10 * 1000 /* 10 seconds tolerance */ );
             });
         });
     });
@@ -679,6 +681,7 @@ describe('WirelessTag:', function() {
                return expect(discoverSpy).to.not.have.been.called;
            });
     });
+
 });
 
 /*

@@ -1,7 +1,10 @@
 language: node_js
-node_js:
-    - "6"
-    - "4"
 sudo: false
+
+node_js:
+    - "4"
+    - "6"
+    - "0.12"
+
 script:
-    npm test
+    - if [ ${TRAVIS_NODE_VERSION:0:4} == "0.12" ] ; then npm run test:harmony ; else npm test ; fi

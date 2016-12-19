@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha",
+    "test:harmony": "npm test -- --harmony",
     "lint": "jshint index.js lib/*.js test/*.js",
     "pretest": "npm run lint"
   },

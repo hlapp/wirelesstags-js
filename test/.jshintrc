@@ -5,6 +5,7 @@
         "it",
         "expect",
         "before",
+        "after",
         "sinon"
     ]
 }

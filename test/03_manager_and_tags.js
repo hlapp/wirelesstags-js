@@ -206,10 +206,6 @@ describe('WirelessTag:', function() {
     var WirelessTagSensor;
     var WirelessTag;
     var focusTag;
-    var tagToReset;
-    var origUpdateInterval;
-    const testInterval = 30;
-    const testUpdateLoops = 2;
 
     before('load modules', function() {
         WirelessTagSensor = require('../lib/sensor.js');
@@ -220,14 +216,6 @@ describe('WirelessTag:', function() {
         tags.forEach((t) => {
             if (t.lastUpdated() > focusTag.lastUpdated()) focusTag = t;
         });
-    });
-
-    after('reset update interval if it was changed', function() {
-        this.timeout(15 * 1000);
-        if (origUpdateInterval
-            && (tagToReset.updateInterval !== origUpdateInterval)) {
-            return tagToReset.setUpdateInterval(origUpdateInterval);
-        }
     });
 
     describe('#uuid', function() {
@@ -485,138 +473,6 @@ describe('WirelessTag:', function() {
         });
     });
 
-    describe('#setUpdateInterval()', function() {
-        let dataSpy = sinon.spy();
-        let tag;
-
-        it("should promise tag with changed \'updateInterval\'",
-           function() {
-               // skip this if we don't have connection information
-               if (credentialsMissing) return this.skip();
-
-               // find the most out of date tag
-               tag = tags[0];
-               tags.forEach((t) => {
-                   if (t.lastUpdated() < tag.lastUpdated()) tag = t;
-               });
-               tag.on('data', dataSpy);
-
-               focusTag = tag;
-               origUpdateInterval = focusTag.updateInterval;
-               tagToReset = focusTag;
-
-               // this call can take some time, so be generous with timeout
-               this.timeout(15 * 1000);
-
-               return expect(tag.setUpdateInterval(testInterval)).
-                   to.eventually.satisfy((t) => {
-                       return t.updateInterval === testInterval;
-                   });
-           });
-        it('should emit \'data\' event due to data update', function() {
-            // skip this if we don't have connection information
-            if (credentialsMissing) return this.skip();
-
-            tag.removeListener('data', dataSpy);
-            return expect(dataSpy).to.have.been.calledOnce;
-        });
-    });
-
-    describe('#startUpdateLoop()', function() {
-        let dataSpy = sinon.spy();
-        let tag;
-        let dataHandler;
-
-        it("should commence auto-update loop for tag",
-           function() {
-               // skip this if we don't have connection information
-               if (credentialsMissing) return this.skip();
-
-               tag = focusTag;
-
-               return expect(tag.startUpdateLoop()).to.be.ok;
-           });
-        it("should result in data updated in regular intervals",
-           function(done) {
-               // skip this if we don't have connection information
-               if (credentialsMissing) return this.skip();
-
-               this.timeout(testInterval * 1000 * (testUpdateLoops + 0.5));
-                                                   // allow for max 50% padding
-               let lastUpdate = tag.lastUpdated();
-               dataHandler = (t) => {
-                   dataSpy(t, t.lastUpdated(), lastUpdate);
-                   lastUpdate = t.lastUpdated();
-               };
-               tag.on('data', dataHandler);
-
-               setTimeout(() => {
-                   done();
-               }, testInterval * 1000 * (testUpdateLoops + 0.2));
-
-           });
-        it('should emit \'data\' events about every updateInterval seconds',
-           function() {
-               // skip this if we don't have connection information
-               if (credentialsMissing) return this.skip();
-
-               // allow between -10 to +5 seconds of update interval
-               let elapsedMin = testInterval * 1000;
-               if (elapsedMin > 15000) elapsedMin -= 15000;
-               let elapsedMax = testInterval * 1000 + 5000;
-               tag.removeListener('data', dataHandler);
-               expect(dataSpy.callCount).to.be.within(testUpdateLoops,
-                                                      testUpdateLoops * 2);
-               // we ignore the first call here - its timing is often off
-               for (let n = 1; n < dataSpy.callCount; n++) {
-                   let spyCall = dataSpy.getCall(n);
-                   let updatedAt = spyCall.args[1];
-                   let prevUpdate = spyCall.args[2];
-                   expect(updatedAt - prevUpdate).to.be.within(elapsedMin,
-                                                               elapsedMax);
-               }
-           });
-    });
-
-    describe('#stopUpdateLoop()', function() {
-        let dataSpy = sinon.spy();
-        let tag;
-
-        it("should stop auto-update loop for tag",
-           function(done) {
-               // skip this if we don't have connection information
-               if (credentialsMissing) return this.skip();
-
-               tag = focusTag;
-               tag.stopUpdateLoop();
-               tag.on('data', dataSpy);
-
-               this.timeout(testInterval * 1000 + 10000); // 10 seconds padding
-
-               let testAndCleanup = (t) => {
-                   t.removeListener('data', dataSpy);
-                   try {
-                       expect(dataSpy).to.have.callCount(0);
-                   }
-                   finally {
-                       done();
-                   }
-               };
-               // wait for one more update cycle to test that updates stopped
-               let timer = setTimeout(() => {
-                   tag.removeListener('data', dataHandler);
-                   testAndCleanup(tag);
-               }, testInterval * 1000 + 5000); // adds 5 seconds to interval
-
-               // fail right away if there is an update
-               let dataHandler = (t) => {
-                   clearTimeout(timer);
-                   testAndCleanup(t);
-               };
-               tag.once('data', dataHandler);
-           });
-    });
-
     describe('#discoverSensors()', function() {
         let discoverSpy = sinon.spy();
         let sensors = [];
@@ -870,9 +726,7 @@ describe('WirelessTagSensor:', function() {
                // skip if there is nothing to test
                if (toTest.length === 0) this.skip();
 
-               toTest.filter((s) => {
-                   return s.eventState !== undefined;
-               }).forEach((sensor) => {
+               toTest.forEach((sensor) => {
                    return expect(sensor.isArmed()).to.be.a('boolean');
                });
            });

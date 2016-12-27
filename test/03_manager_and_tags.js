@@ -329,6 +329,19 @@ describe('WirelessTag:', function() {
         });
     });
 
+    describe('#lowPowerMode', function() {
+        it('a boolean, whether low power mode is enabled', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            tags.map((tag) => {
+                return tag.lowPowerMode;
+            }).forEach((value) => {
+                return expect(value).to.be.a('boolean');
+            });
+        });
+    });
+
     describe('#sensorCapabilities()', function() {
         it('array of strings, sensor types the tag has', function() {
             // skip this if we don't have connection information

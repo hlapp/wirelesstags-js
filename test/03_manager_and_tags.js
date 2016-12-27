@@ -396,7 +396,7 @@ describe('WirelessTag:', function() {
                     to.be.at.least(Date.now()
                                    - tag.updateInterval * 1000
                                    - 55 * 1000 /* time cloud is about behind */
-                                   - 10 * 1000 /* 10 seconds tolerance */ );
+                                   - 45 * 1000 /* 45 seconds tolerance */ );
             });
         });
     });
@@ -459,7 +459,7 @@ describe('WirelessTag:', function() {
                if (credentialsMissing) return this.skip();
 
                // allow more time for this test - sometimes needed
-               this.timeout(8 * 1000);
+               this.timeout(15 * 1000);
 
                tag = focusTag;
                let prevUpdated = tag.lastUpdated();

@@ -1,4 +1,6 @@
 [![Build Status](https://travis-ci.org/hlapp/wirelesstags-js.svg?branch=master)](https://travis-ci.org/hlapp/wirelesstags-js)
+[![npm](https://img.shields.io/npm/v/wirelesstags.svg)](https://www.npmjs.com/package/wirelesstags)
+[![npm](https://img.shields.io/npm/dt/wirelesstags.svg)](https://www.npmjs.com/package/wirelesstags)
 
 # wirelesstags - JavaScript API for the Wireless Sensor Tags platform
 

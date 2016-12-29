@@ -220,6 +220,11 @@ To regularly update a tag object's data whenver the tag posts its latest
 information, a loop can be started with `tag.startUpdateLoop()`, and
 stopped by `tag.stopUpdateLoop().
 
+### Examples
+
+See the `examples/` directory for basic demonstrations of how the
+library can be used.
+
 ## How to support
 
 Aside from reporting issues and contributing pull requests, if you

@@ -1101,4 +1101,377 @@ describe('WirelessTagSensor:', function() {
            });
     });
 
+    describe('#monitoringConfig().isModified()', function() {
+
+        it('should be false if not changed',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               sensors.map((sensor) => {
+                   return sensor.monitoringConfig();
+               }).forEach((mconfig) => {
+                   return expect(mconfig.isModified()).to.equal(false);
+               });
+           });
+
+        it('should be true when config is marked as changed',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               sensors.map((sensor) => {
+                   return sensor.monitoringConfig().markModified();
+               }).forEach((mconfig) => {
+                   return expect(mconfig.isModified()).to.equal(true);
+               });
+           });
+
+        it('should be true for marked property if not all changed',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               sensors.map((sensor) => {
+                   return sensor.monitoringConfig().resetModified().
+                       markModified('notifySettings.sound');
+               }).forEach((mconfig) => {
+                   return expect(mconfig.isModified('notifySettings.sound')).
+                       to.equal(true);
+               });
+           });
+
+        it('should be true only for marked property if not all changed',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               sensors.map((sensor) => {
+                   return sensor.monitoringConfig().resetModified().
+                       markModified('notifySettings.sound');
+               }).forEach((mconfig) => {
+                   return expect(mconfig.isModified('notifySettings.email')).
+                       to.equal(false);
+               });
+           });
+
+        it('should be true for property whose value is set',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return s.wirelessTag.isPhysicalTag()
+                       && s.sensorType !== 'signal';
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.map((sensor) => {
+                   let mconfig = sensor.monitoringConfig().resetModified();
+                   mconfig.notifySettings.sound = 'moof';
+                   return mconfig;
+               }).forEach((mconfig) => {
+                   return expect(mconfig.isModified('notifySettings.sound')).
+                       to.equal(true);
+               });
+           });
+
+        it('should be true for internal property whose value is set',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return s.wirelessTag.isPhysicalTag()
+                       && s.sensorType !== 'signal';
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.map((sensor) => {
+                   return sensor.monitoringConfig();
+               }).forEach((mconfig) => {
+                   return expect(mconfig.isModified('apnsSound')).
+                       to.equal(true);
+               });
+           });
+
+        it('should be false for property whose value was not set',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return s.wirelessTag.isPhysicalTag()
+                       && s.sensorType !== 'signal';
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.map((sensor) => {
+                   return sensor.monitoringConfig();
+               }).forEach((mconfig) => {
+                   return expect(mconfig.isModified('notifySettings.email')).
+                       to.equal(false);
+               });
+           });
+
+        it('should be false for internal property whose value was not set',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return s.wirelessTag.isPhysicalTag()
+                       && s.sensorType !== 'outofrange'
+                       && s.sensorType !== 'signal';
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.map((sensor) => {
+                   return sensor.monitoringConfig();
+               }).forEach((mconfig) => {
+                   return expect(mconfig.isModified('email')).
+                       to.equal(false);
+               });
+           });
+
+    });
+
+    describe('#monitoringConfig().markModified()', function() {
+
+        it('should mark config as changed',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               sensors.map((sensor) => {
+                   return sensor.monitoringConfig().markModified();
+               }).forEach((mconfig) => {
+                   return expect(mconfig.isModified()).to.equal(true);
+               });
+           });
+
+        it('should mark any property as changed',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return s.wirelessTag.isPhysicalTag()
+                       && s.sensorType !== 'signal';
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.map((sensor) => {
+                   return sensor.monitoringConfig().markModified();
+               }).forEach((mconfig) => {
+                   return expect(mconfig.isModified('notifySettings')).
+                       to.equal(true);
+               });
+           });
+
+        it('should mark any internal property as changed',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return s.wirelessTag.isPhysicalTag()
+                       && s.sensorType !== 'signal';
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.map((sensor) => {
+                   return sensor.monitoringConfig().markModified();
+               }).forEach((mconfig) => {
+                   return expect(mconfig.isModified('apnsSound')).
+                       to.equal(true);
+               });
+           });
+
+        it('should return monitoringConfig for chaining',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               sensors.map((sensor) => {
+                   return sensor.monitoringConfig();
+               }).forEach((mconfig) => {
+                   return expect(mconfig.markModified()).to.equal(mconfig);
+               });
+           });
+
+        it('with argument \'property\' should mark \'property\'',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               sensors.map((sensor) => {
+                   return sensor.monitoringConfig().resetModified().
+                       markModified('notifySettings.sound');
+               }).forEach((mconfig) => {
+                   return expect(mconfig.isModified('notifySettings.sound')).
+                       to.equal(true);
+               });
+           });
+
+        it('with argument \'property\' should mark only \'property\'',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               sensors.map((sensor) => {
+                   return sensor.monitoringConfig().resetModified().
+                       markModified('notifySettings.sound');
+               }).forEach((mconfig) => {
+                   return expect(mconfig.isModified('notifySettings.email')).
+                       to.equal(false);
+               });
+           });
+
+        it('with argument \'property\' does not also mark internal property',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               sensors.map((sensor) => {
+                   return sensor.monitoringConfig().resetModified().
+                       markModified('notifySettings.sound');
+               }).forEach((mconfig) => {
+                   return expect(mconfig.isModified('apnsSound')).
+                       to.equal(false);
+               });
+           });
+
+    });
+
+    describe('#monitoringConfig().resetModified()', function() {
+
+        it('should clear all modification flags',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               sensors.map((sensor) => {
+                   return sensor.monitoringConfig().resetModified();
+               }).forEach((mconfig) => {
+                   return expect(mconfig.isModified()).to.equal(false);
+               });
+           });
+
+        it('should return monitoringConfig for chaining',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               sensors.map((sensor) => {
+                   return sensor.monitoringConfig();
+               }).forEach((mconfig) => {
+                   return expect(mconfig.resetModified()).to.equal(mconfig);
+               });
+           });
+
+    });
+
+    describe('#monitoringConfig().update()', function() {
+        let eventSpy = sinon.spy();
+
+        it('should have no effect if monitoring config marked modified',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return s.wirelessTag.isPhysicalTag()
+                       && s.sensorType !== 'signal';
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               let proms = toTest.map((sensor) => {
+                   sensor.on('config', eventSpy);
+                   let mconfig = sensor.monitoringConfig();
+                   mconfig.notifySettings.sound = "moo";
+                   return mconfig.markModified('notifySettings').update();
+               });
+               return expect(Promise.all(proms)).
+                   to.eventually.satisfy((mconfigs) => {
+                       return mconfigs.reduce((all, mconfig) => {
+                           return all
+                               && mconfig.isModified()
+                               && mconfig.notifySettings.sound === "moo";
+                       }, true);
+                   });
+           });
+
+        it('sensor should then also not emit \'config\' event',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               return expect(eventSpy).to.have.not.been.called;
+           });
+
+        it('should restore from cloud if monitoring config not marked modified',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return s.wirelessTag.isPhysicalTag()
+                       && s.sensorType !== 'signal';
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               eventSpy.reset();
+               let proms = toTest.map((sensor) => {
+                   let mconfig = sensor.monitoringConfig();
+                   mconfig.notifySettings.sound = "moo";
+                   return mconfig.resetModified().update();
+               });
+               return expect(Promise.all(proms)).
+                   to.eventually.satisfy((mconfigs) => {
+                       return mconfigs.reduce((all, mconfig) => {
+                           return all
+                               && (! mconfig.isModified())
+                               && mconfig.notifySettings.sound !== "moo";
+                       }, true);
+                   });
+           });
+
+        it('sensor should emit \'config\' event if config updated from cloud',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               return expect(eventSpy).to.have.callCount(
+                   sensors.filter((s) => {
+                       return s.wirelessTag.isPhysicalTag()
+                           && s.sensorType !== 'signal';
+                   }).length);
+           });
+
+        it('sensor should emit \'config\' with sensor, config, and \'update\'',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               sensors.filter((s) => {
+                   return s.wirelessTag.isPhysicalTag()
+                       && s.sensorType !== 'signal';
+               }).forEach((s) => {
+                   return expect(eventSpy).to.have.been.calledWith(
+                       s, s.monitoringConfig(), 'update'
+                   );
+               });
+           });
+
+    });
+
 });

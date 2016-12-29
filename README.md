@@ -220,6 +220,14 @@ To regularly update a tag object's data whenver the tag posts its latest
 information, a loop can be started with `tag.startUpdateLoop()`, and
 stopped by `tag.stopUpdateLoop().
 
+## How to support
+
+Aside from reporting issues and contributing pull requests, if you
+plan to buy from Wireless Sensor Tag, you might consider using
+[this link](https://goo.gl/GxwQbZ) to their website. If more than 10
+people do so, and some end up buying, I stand to receive a discount on
+a past purchase of mine, which will allow me to buy other types of
+tags in the future and support those too.
 
 ## License
 

@@ -1060,6 +1060,45 @@ describe('WirelessTagSensor:', function() {
                        and.to.be.above(10);
                });
            });
+
+        it('assigning unmapped value to \'gracePeriod\' should throw',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return s.sensorType === 'outofrange';
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.forEach((sensor) => {
+                   return expect(() => {
+                       sensor.monitoringConfig().gracePeriod = 10000;
+                       return sensor.monitoringConfig().gracePeriod;
+                   }).to.throw(RangeError);
+               });
+           });
+        it('assigning mapped value to \'gracePeriod\' should succeed',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return s.sensorType === 'outofrange';
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.forEach((sensor) => {
+                   sensor.monitoringConfig().gracePeriod = 1800;
+                   sensor.monitoringConfig().resetModified();
+               });
+               toTest.forEach((sensor) => {
+                   return expect(sensor.monitoringConfig().gracePeriod).
+                       to.equal(1800);
+               });
+           });
     });
 
 });

@@ -545,4 +545,93 @@ describe('Updating sensors:', function() {
         });
     });
 
+    describe('#monitoringConfig().save()', function() {
+        let eventSpy = sinon.spy();
+
+        it('should have no effect if monitoring config not marked modified',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return s.wirelessTag.isPhysicalTag()
+                       && s.sensorType !== 'signal';
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               let startTime = Date.now();
+               let proms = toTest.map((sensor) => {
+                   sensor.on('config', eventSpy);
+                   return sensor.monitoringConfig().resetModified().save();
+               });
+               return expect(Promise.all(proms).then(() => {
+                   return Date.now();
+               })).to.be.eventually.below(startTime + 50);
+           });
+
+        it('sensors should then also not trigger \'config\' event',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               return expect(eventSpy).to.have.not.been.called;
+           });
+
+        it('should promise sensor with saved monitoring config if modified',
+           function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return s.wirelessTag.isPhysicalTag()
+                       && s.sensorType !== 'signal';
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               // this can take a while, allow for sufficient time
+               this.timeout(120 * 1000);
+               let proms = toTest.map((s) => {
+                   console.log("ensuring clean config for",
+                               s.sensorType, "of", s.wirelessTag.name);
+                   return s.monitoringConfig().resetModified().update();
+               });
+               // issue the save() calls sequentially
+               let limit = Promise.limit(1);
+               let saveReqs = Promise.all(proms).then(() => {
+                   // reset event spy - we are not interested in update events
+                   eventSpy.reset();
+                   return Promise.all(toTest.map((s) => {
+                       return limit(() => {
+                           console.log("saving config for",
+                                       s.sensorType, "of", s.wirelessTag.name);
+                           return s.monitoringConfig().markModified().save();
+                       });
+                   }));
+               });
+               return expect(saveReqs).to.eventually.satisfy((mconfigs) => {
+                       return mconfigs.reduce((all, c) => {
+                           return all && !c.isModified();
+                       }, true);
+                   });
+           });
+
+        it('sensors should emit \'config\' events with sensor, config, and \'save\'',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               sensors.filter((s) => {
+                   return s.wirelessTag.isPhysicalTag()
+                       && s.sensorType !== 'signal';
+               }).forEach((s) => {
+                   return expect(eventSpy).to.have.been.calledWith(
+                       s, s.monitoringConfig(), 'save'
+                   );
+               });
+           });
+
+    });
+
 });

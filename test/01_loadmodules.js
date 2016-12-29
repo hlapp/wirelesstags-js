@@ -34,7 +34,7 @@ describe('loading modules and instantiating objects:', function() {
     // tag manager module
     describe('#WirelessTagManager', function() {
         it('should load module ', function() {
-            expect(() => { WirelessTagManager = require('../lib/tagmanager.js'); }).
+            expect(() => { WirelessTagManager = require('../lib/tagmanager'); }).
                 to.not.throw();
         });
         it('should instantiate object with new', function() {
@@ -46,7 +46,7 @@ describe('loading modules and instantiating objects:', function() {
     // tag module
     describe('#WirelessTag', function() {
         it('should load module ', function() {
-            expect(() => { WirelessTag = require('../lib/tag.js'); }).
+            expect(() => { WirelessTag = require('../lib/tag'); }).
                 to.not.throw();
         });
         it('should instantiate object with new', function() {
@@ -58,7 +58,7 @@ describe('loading modules and instantiating objects:', function() {
     // sensor module
     describe('#WirelessTagSensor', function() {
         it('should load module ', function() {
-            expect(() => { WirelessTagSensor = require('../lib/sensor.js'); }).
+            expect(() => { WirelessTagSensor = require('../lib/sensor'); }).
                 to.not.throw();
         });
         it('should instantiate object with new', function() {

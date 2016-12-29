@@ -14,7 +14,7 @@ describe('WirelessTagPlatform:', function() {
 
     before('load platform module', function() {
         WirelessTagPlatform = require('../');
-        WirelessTagManager = require('../lib/tagmanager.js');
+        WirelessTagManager = require('../lib/tagmanager');
         platform = WirelessTagPlatform.create();
     });
 

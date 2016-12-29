@@ -17,8 +17,8 @@ describe('WirelessTagManager:', function() {
 
     before('load and connect to platform, find tag manager(s)', function(done) {
         WirelessTagPlatform = require('../');
-        WirelessTagManager = require('../lib/tagmanager.js');
-        WirelessTag = require('../lib/tag.js');
+        WirelessTagManager = require('../lib/tagmanager');
+        WirelessTag = require('../lib/tag');
 
         // create platform object, register listeners
         platform = WirelessTagPlatform.create();
@@ -208,8 +208,8 @@ describe('WirelessTag:', function() {
     var focusTag;
 
     before('load modules', function() {
-        WirelessTagSensor = require('../lib/sensor.js');
-        WirelessTag = require('../lib/tag.js');
+        WirelessTagSensor = require('../lib/sensor');
+        WirelessTag = require('../lib/tag');
 
         // find the tag with the most recent time of last update
         focusTag = tags[0];

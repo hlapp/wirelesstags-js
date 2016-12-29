@@ -6,7 +6,7 @@
 /*
  * The cloud platform interface to the Wireless Tag platform
  */
-var WirelessTagPlatform = require('./lib/platform.js');
+var WirelessTagPlatform = require('./lib/platform');
 
 const path = require('path');
 const os = require('os');

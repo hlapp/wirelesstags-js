@@ -218,7 +218,28 @@ that the tag immediately post its latest information.
 
 To regularly update a tag object's data whenver the tag posts its latest
 information, a loop can be started with `tag.startUpdateLoop()`, and
-stopped by `tag.stopUpdateLoop().
+stopped by `tag.stopUpdateLoop()`.
+
+### Promises versus Callbacks
+
+The library attempts to support both returning Promises from
+API-calling asynchronous functions, and the traditional callback
+mechanism.
+
+Callbacks are generally called with an error as the first argument if
+one occurred, and as the second argument with an object that has keys
+`object` (the object in which the operation was performed), and
+`value` (the resulting value from that operation) if the operation had
+a result that is not saving or updating a property value of the
+object. For example, in `platform.isConnected(cb)`, `cb` will be
+called with `{ object: platform, value: false }` if the instance
+wasn't yet connected.
+
+It is considered a bad idea, and not supported (even if it happens to
+work) to mix passing callbacks _and_ using the returned Promises.
+
+Note that callback behaviour is not currently tested as part of the
+test suite, so there could be bugs.
 
 ### Examples
 

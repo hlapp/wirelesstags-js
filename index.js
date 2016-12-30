@@ -46,11 +46,13 @@ const ENV_TOKEN = "WIRELESSTAG_API_TOKEN";
  * Loads config information, which presently consists primarily of
  * connection options.
  *
- * The algorithm will attempt to read the file CONFIG_NAME (in JSON
- * format) in the executing user's home directory if the file
- * exists. It will then take username and password from the
- * environment (ENV_USERNAME and ENV_PASSWORD), which allows to use
- * the environment to override settings in the configuration file.
+ * The algorithm will attempt to read the file [CONFIG_NAME]{@link
+ * module:wirelesstags~CONFIG_NAME} (in JSON format) in the executing
+ * user's home directory if the file exists. It will then take
+ * username and password from the environment ([ENV_USERNAME]{@link
+ * module:wirelesstags~ENV_USERNAME} and [ENV_PASSWORD]{@link
+ * module:wirelesstags~ENV_PASSWORD}), which allows to use the
+ * environment to override settings in the configuration file.
  *
  * @returns {Object}
  * @memberof WirelessTagPlatform
@@ -102,5 +104,18 @@ WirelessTagPlatform.create = function(options) {
     }
     return new WirelessTagPlatform(config);
 };
+
+/**
+ * Callback accepted by most API-querying methods.
+ *
+ * @callback module:wirelesstags~apiCallback
+ * @param {Error} error - the error instance if one occurred
+ * @param {Object} [result] - the result if success
+ * @param {Object} result.object - the object for which the value was returned
+ * @param {} [result.value] - the value returned by the API-querying
+ *            method; unless noted otherwise, this will be the same as
+ *            what the Promise resolves to that the method returns,
+ *            provided it is different from the object itself
+ */
 
 module.exports = WirelessTagPlatform;

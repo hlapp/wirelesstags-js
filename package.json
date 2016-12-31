@@ -7,7 +7,7 @@
     "test": "mocha",
     "test:ci": "npm run test -- test/{01,02,03}_*.js",
     "test:rw": "npm run test -- test/{04}_*.js",
-    "lint": "jshint index.js lib/*.js lib/error/*.js examples/*.js test/*.js",
+    "lint": "jshint index.js lib/*.js lib/error/*.js examples/*.js plugins/*.js test/*.js",
     "pretest": "npm run lint",
     "doc": "jsdoc --access all -r -c .jsdoc-conf.json -d ./docs/ .",
     "predoc": "rm -rf docs/$npm_package_name/$npm_package_version",
@@ -31,6 +31,7 @@
     "deep-equal": ">=1.0.1",
     "promise-retry": "^1.1.1",
     "request": ">=2.79.0",
+    "soap": "^0.18.0",
     "timeout-as-promise": "^1.0.0"
   },
   "devDependencies": {

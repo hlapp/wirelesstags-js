@@ -150,6 +150,21 @@ describe('WirelessTagManager:', function() {
             return expect(() => { tagManager.rev = 0; }).to.throw(TypeError);
         });
     });
+    describe('#dbid', function() {
+        it('a number, should be its sequential id', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            expect(tagManager.rev).to.be.a('number').
+                and.to.be.below(256);     // byte
+        });
+        it('should be read-only', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            return expect(() => { tagManager.dbid = 0; }).to.throw(TypeError);
+        });
+    });
 
     describe('#select()', function() {
         it('should promise to select it for API calls - happens automatically',

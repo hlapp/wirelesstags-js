@@ -1,0 +1,24 @@
+{
+    "opts" : {
+        "package": "package.json",
+        "readme": "README.md"
+    },
+    "tags": {
+        "allowUnknownTags": false
+    },
+    "source": {
+        "exclude": [ "test", "node_modules" ]
+    },
+    "plugins": [
+        "plugins/markdown"
+    ],
+    "templates": {
+        "cleverLinks": true,
+        "default": {
+            "includeDate": false
+        }
+    },
+    "markdown": {
+        "idInHeadings": true
+    }
+}

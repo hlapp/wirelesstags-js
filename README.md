@@ -12,11 +12,6 @@ primarily intended, designed, and tested for server-side use through
 NodeJS. (However, making it usable within a browser is a future goal,
 and corresponding contributions are welcome too.)
 
-This code is alpha. Documentation remains almost non-existent, and
-code can change quickly, including the API. Use at your own peril. The
-tests are likely to show a more up to date and more complete
-description of the API than this document.
-
 ## Installation and setup
 
 ```sh
@@ -241,10 +236,19 @@ work) to mix passing callbacks _and_ using the returned Promises.
 Note that callback behaviour is not currently tested as part of the
 test suite, so there could be bugs.
 
-### Examples
+### Full documentation
 
-See the `examples/` directory for basic demonstrations of how the
-library can be used.
+This library should be considered beta. Full API documentation is
+only starting to come into place, and remains lacking for most of its
+functionality:
+
+* [Online API documentation](http://lappland.io/wirelesstags-js/wirelesstags/0.5.2)
+  for version v0.5.2
+* See `[examples/]` directory for tutorial scripts that give basic,
+  but fully working demonstrations of how the library can be used.
+
+Use at your own peril, and consider looking at the (meanwhile farily
+comprehensive) tests for guidance.
 
 ## How to support
 
@@ -263,3 +267,4 @@ Available under the [MIT License](LICENSE).
 [JSON Web Servive API]: http://mytaglist.com/media/mytaglist.com/apidoc.html
 [Tag Manager]: http://wirelesstag.net/specs.html#manager
 [Wireless Tag]: http://wirelesstag.net/specs.html#tag
+[examples/]: https://github.com/hlapp/wirelesstags-js/tree/master/examples

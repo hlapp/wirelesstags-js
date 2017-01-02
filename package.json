@@ -10,7 +10,8 @@
     "lint": "jshint index.js lib/*.js lib/error/*.js test/*.js",
     "pretest": "npm run lint",
     "doc": "jsdoc --access all -r -c .jsdoc-conf.json -d ./docs/ .",
-    "predoc": "rm -rf docs/$npm_package_name/$npm_package_version"
+    "predoc": "rm -rf docs/$npm_package_name/$npm_package_version",
+    "genjs": "cd examples; for d in *.js.md ; do erudite -o `basename $d .md` $d ; done"
   },
   "repository": {
     "type": "git",
@@ -35,6 +36,7 @@
   "devDependencies": {
     "chai": "*",
     "chai-as-promised": "^6.0.0",
+    "erudite": "^0.5.1",
     "jsdoc": "^3.4.3",
     "jshint": "^2.9.4",
     "mocha": "*",

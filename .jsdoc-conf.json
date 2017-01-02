@@ -1,13 +1,14 @@
 {
     "opts" : {
         "package": "package.json",
-        "readme": "README.md"
+        "readme": "README.md",
+        "tutorials": "./examples/"
     },
     "tags": {
         "allowUnknownTags": false
     },
     "source": {
-        "exclude": [ "test", "node_modules" ]
+        "exclude": [ "test", "examples", "node_modules" ]
     },
     "plugins": [
         "plugins/markdown"

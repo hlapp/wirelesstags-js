@@ -54,10 +54,6 @@ platform by interfacing with its <a href="http://mytaglist.com/media/mytaglist.c
 primarily intended, designed, and tested for server-side use through
 NodeJS. (However, making it usable within a browser is a future goal,
 and corresponding contributions are welcome too.)</p>
-<p>This code is alpha. Documentation remains almost non-existent, and
-code can change quickly, including the API. Use at your own peril. The
-tests are likely to show a more up to date and more complete
-description of the API than this document.</p>
 <h2 id="installation-and-setup">Installation and setup</h2>
 <pre class="prettyprint source lang-sh"><code>$ npm install wirelesstags</code></pre><p>The library (specifically, the <code>platform.connect()</code> method, see
 below) will need authentication information. The library supports two
@@ -225,9 +221,18 @@ wasn't yet connected.</p>
 work) to mix passing callbacks <em>and</em> using the returned Promises.</p>
 <p>Note that callback behaviour is not currently tested as part of the
 test suite, so there could be bugs.</p>
-<h3 id="examples">Examples</h3>
-<p>See the <code>examples/</code> directory for basic demonstrations of how the
-library can be used.</p>
+<h3 id="full-documentation">Full documentation</h3>
+<p>This library should be considered beta. Full API documentation is
+only starting to come into place, and remains lacking for most of its
+functionality:</p>
+<ul>
+<li><a href="http://lappland.io/wirelesstags-js/wirelesstags/0.5.2">Online API documentation</a>
+for version v0.5.2</li>
+<li>See <code>[examples/]</code> directory for tutorial scripts that give basic,
+but fully working demonstrations of how the library can be used.</li>
+</ul>
+<p>Use at your own peril, and consider looking at the (meanwhile farily
+comprehensive) tests for guidance.</p>
 <h2 id="how-to-support">How to support</h2>
 <p>Aside from reporting issues and contributing pull requests, if you
 plan to buy from Wireless Sensor Tag, you might consider using

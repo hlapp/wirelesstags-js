@@ -64,7 +64,7 @@ invisible.</p>
 <pre class="prettyprint source lang-js"><code>platform.on('connect', () => {
     console.log(&quot;connected to Wireless Tag cloud&quot;);
     platform.discoverTagManagers().catch(
-        (err) => { console.error(e.stack ? e.stack : e); });
+        (err) => { console.error(err.stack ? err.stack : err); });
 });</code></pre><p>The <code>discover</code> handler for the platform will receive tag a manager
 object on each event.</p>
 <pre class="prettyprint source"><code>platform.on('discover', (manager) => {

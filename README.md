@@ -244,8 +244,9 @@ functionality:
 
 * [Online API documentation](http://lappland.io/wirelesstags-js/wirelesstags/0.5.2)
   for version v0.5.2
-* See `[examples/]` directory for tutorial scripts that give basic,
-  but fully working demonstrations of how the library can be used.
+* See the [`examples/`](https://github.com/hlapp/wirelesstags-js/tree/master/examples)
+  directory for tutorial scripts that give basic, but fully working
+  demonstrations of how the library can be used.
 
 Use at your own peril, and consider looking at the (meanwhile farily
 comprehensive) tests for guidance.
@@ -267,4 +268,3 @@ Available under the [MIT License](LICENSE).
 [JSON Web Servive API]: http://mytaglist.com/media/mytaglist.com/apidoc.html
 [Tag Manager]: http://wirelesstag.net/specs.html#manager
 [Wireless Tag]: http://wirelesstag.net/specs.html#tag
-[examples/]: https://github.com/hlapp/wirelesstags-js/tree/master/examples

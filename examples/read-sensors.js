@@ -8,7 +8,7 @@ var END_AFTER = 30 * 60 * 1000; // value is in milliseconds
 platform.on('connect', function () {
     console.log("connected to Wireless Tag cloud");
     platform.discoverTagManagers()['catch'](function (err) {
-        console.error(e.stack ? e.stack : e);
+        console.error(err.stack ? err.stack : err);
     });
 });
 

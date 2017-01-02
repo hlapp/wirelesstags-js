@@ -47,7 +47,7 @@ In the `connect` event handler, trigger discovery of tag managers (see
 platform.on('connect', () => {
     console.log("connected to Wireless Tag cloud");
     platform.discoverTagManagers().catch(
-        (err) => { console.error(e.stack ? e.stack : e); });
+        (err) => { console.error(err.stack ? err.stack : err); });
 });
 ```
 

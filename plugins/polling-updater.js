@@ -5,7 +5,8 @@ var request = require('request'),
 
 const WSDL_URL_PATH = "/ethComet.asmx?WSDL";
 const API_BASE_URI = "https://www.mytaglist.com";
-const UPDATE_LOOP_WAIT = 1000;
+const UPDATE_LOOP_WAIT = 20;
+const WAIT_AFTER_ERROR = 1000;
 
 function PollingTagUpdater(platform, config) {
     this.tagsByUUID = {};
@@ -51,7 +52,8 @@ PollingTagUpdater.prototype.startUpdateLoop = function(waitTime) {
             waitTime = undefined;
         }).catch((err) => {
             console.error(err.stack ? err.stack : err);
-            waitTime = waitTime * 2;
+            waitTime = waitTime < WAIT_AFTER_ERROR ?
+                WAIT_AFTER_ERROR : waitTime * 2;
         }).then(() => {
             // with the preceding catch() this is in essence a finally()
             if (this._updateTimer) {

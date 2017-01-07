@@ -27,12 +27,14 @@ The principle flow is taken straight from {@tutorial read-sensors.js}:
 ### Create platform object
 
     var Platform = require('wirelesstags'),
-        platform = Platform.create(),
-        TagUpdater = require('wirelesstags/plugins/polling-updater');
+        platform = Platform.create();
 
-How long to keep looping?
+### Create tag updater
 
-    const END_AFTER = 30 * 60 * 1000; // value is in milliseconds
+Here we determine which tag updater we use. Here we want to use the
+one that uses polling.
+
+    var TagUpdater = require('wirelesstags/plugins/polling-updater');
 
 ### Set up event handlers
 
@@ -42,6 +44,10 @@ succeeds. One could equally well use `Promise`-chaining (via
 `.then()`). Note that if we do not use callbacks, it is a good idea to
 `.catch()` rejected promises, because otherwise errors thrown will be
 invisible.
+
+How long to keep looping?
+
+    const END_AFTER = 30 * 60 * 1000; // value is in milliseconds
 
 In the `connect` event handler, trigger discovery of tag managers (see
 [discoverTagManagers()]{@link WirelessTagPlatform#discoverTagManagers}):

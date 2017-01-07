@@ -43,13 +43,19 @@ const API_BASE_URI = "https://www.mytaglist.com";
  *                   polling endpoint (in milliseconds)
  * @default
  */
-const UPDATE_LOOP_WAIT = 20;
+const UPDATE_LOOP_WAIT = 10;
 /**
  * @const {number} - the minimum time to wait between subsequent calls of the
  *                   polling endpoint after an error occurred (in milliseconds)
  * @default
  */
 const WAIT_AFTER_ERROR = 1000;
+/**
+ * @const {number} - the maximum time to wait between subsequent calls of the
+ *                   polling endpoint (in milliseconds)
+ * @default
+ */
+const MAX_UPDATE_LOOP_WAIT = 30 * 60 * 1000;
 
 /**
  * Creates the updater instance.
@@ -127,8 +133,11 @@ PollingTagUpdater.prototype.removeTags = function(tags) {
  */
 PollingTagUpdater.prototype.startUpdateLoop = function(waitTime) {
     if (waitTime === undefined) waitTime = UPDATE_LOOP_WAIT;
+    if (waitTime > MAX_UPDATE_LOOP_WAIT) waitTime = MAX_UPDATE_LOOP_WAIT;
+
     if (this._updateTimer) return this._updateTimer;
     this._updateTimer = true; // placeholder to avoid race conditions
+
     let action = () => {
         this._updateTimer = true; // timer is done but action not yet
         this.apiClient().then((client) => {

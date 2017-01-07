@@ -3,11 +3,20 @@
 var request = require('request'),
     soap = require('soap');
 
-const WSDL_URL = "https://www.mytaglist.com/ethComet.asmx?WSDL";
+const WSDL_URL_PATH = "/ethComet.asmx?WSDL";
+const API_BASE_URI = "https://www.mytaglist.com";
 const UPDATE_LOOP_WAIT = 1000;
 
-function PollingTagUpdater() {
+function PollingTagUpdater(platform, config) {
     this.tagsByUUID = {};
+    this.options = Object.assign({}, config);
+    if (! this.options.wsdl_url) {
+        let apiBaseURI;
+        if (platform) apiBaseURI = platform.apiBaseURI;
+        if (config && config.apiBaseURI) apiBaseURI = config.apiBaseURI;
+        if (! apiBaseURI) apiBaseURI = API_BASE_URI;
+        this.options.wsdl_url = apiBaseURI + WSDL_URL_PATH;
+    }
 }
 
 PollingTagUpdater.prototype.addTags = function(tags) {

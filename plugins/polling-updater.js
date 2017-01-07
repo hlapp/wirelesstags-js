@@ -132,7 +132,16 @@ PollingTagUpdater.prototype.startUpdateLoop = function(waitTime) {
     let action = () => {
         this._updateTimer = true; // timer is done but action not yet
         this.apiClient().then((client) => {
-            return pollForNextUpdate(client);
+            // if all tags are associated with a single tag manager,
+            // limit updates to that tag manager
+            let mgrs = Object.keys(this.tagsByUUID).map((uuid) => {
+                return this.tagsByUUID[uuid].wirelessTagManager;
+            }).reduce((all, mgr) => {
+                if (all.length === 0 || all[0].mac !== mgr.mac) all.push(mgr);
+                return all;
+            }, []);
+            return pollForNextUpdate(client,
+                                     mgrs.length === 1 ? mgrs[0] : undefined);
         }).then((tagDataList) => {
             tagDataList.forEach((tagData) => {
                 updateTag(this.tagsByUUID[tagData.uuid], tagData);

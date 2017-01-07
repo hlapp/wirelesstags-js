@@ -1,8 +1,9 @@
 'use strict';
 
 var Platform = require('wirelesstags'),
-    platform = Platform.create(),
-    TagUpdater = require('wirelesstags/plugins/polling-updater');
+    platform = Platform.create();
+
+var TagUpdater = require('wirelesstags/plugins/polling-updater');
 
 var END_AFTER = 30 * 60 * 1000; // value is in milliseconds
 

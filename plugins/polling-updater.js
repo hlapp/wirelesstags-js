@@ -20,7 +20,7 @@ function PollingTagUpdater(platform, config) {
 }
 
 PollingTagUpdater.prototype.addTags = function(tags) {
-    if (tags && !Array.isArray(tags)) tags = [tags];
+    if (!Array.isArray(tags)) tags = [tags];
     for (let tag of tags) {
         this.tagsByUUID[tag.uuid] = tag;
     }
@@ -45,7 +45,7 @@ PollingTagUpdater.prototype.startUpdateLoop = function(waitTime) {
             return pollForNextUpdate(client);
         }).then((tagDataList) => {
             tagDataList.forEach((tagData) => {
-                this.updateTagFrom(tagData);
+                updateTag(this.tagsByUUID[tagData.uuid], tagData);
             });
             // reset wait time upon success
             waitTime = undefined;
@@ -76,14 +76,16 @@ PollingTagUpdater.prototype.stopUpdateLoop = function() {
     }
 };
 
-PollingTagUpdater.prototype.bounceUpdateLoop = function() {
-    return this;
+PollingTagUpdater.prototype.apiClient = function() {
+    if (this.client) return Promise.resolve(this.client);
+    return createSoapClient(this.options).then((client) => {
+        this.client = client;
+        return client;
+    });
 };
 
-PollingTagUpdater.prototype.updateTagFrom = function(tagData) {
-    // identify tag
-    let tag = this.tagsByUUID[tagData.uuid];
-    // if not listed for receiving updates, we are done
+function updateTag(tag, tagData) {
+    // if not a valid object for receiving updates, we are done
     if (! tag) return;
     // check that this is the current tag manager
     if (tagData.mac && (tag.wirelessTagManager.mac !== tagData.mac)) {
@@ -98,18 +100,12 @@ PollingTagUpdater.prototype.updateTagFrom = function(tagData) {
     });
     // almost done
     tag.data = tagData;
-};
+}
 
-PollingTagUpdater.prototype.apiClient = function() {
-    if (this.client) return Promise.resolve(this.client);
-    return createSoapClient(this.options).then((client) => {
-        this.client = client;
-        return client;
-    });
-};
 
 function createSoapClient(opts) {
-    let wsdl = opts && opts.wsdl ? opts.wsdl : WSDL_URL;
+    let wsdl = opts && opts.wsdl_url ?
+        opts.wsdl_url : API_BASE_URI + WSDL_URL_PATH;
     let clientOpts = { request: request.defaults({ jar: true, gzip: true }) };
     return new Promise((resolve, reject) => {
         soap.createClient(wsdl, clientOpts, (err, client) => {

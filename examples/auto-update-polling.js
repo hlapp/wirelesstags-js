@@ -9,7 +9,7 @@ var END_AFTER = 30 * 60 * 1000; // value is in milliseconds
 
 platform.on('connect', function () {
     console.log("connected to Wireless Tag cloud");
-    platform.discoverTagManagers()['catch'](function (err) {
+    platform.discoverTagManagers().catch(function (err) {
         console.error(err.stack ? err.stack : err);
     });
 });
@@ -27,7 +27,7 @@ platform.on('discover', function (manager) {
         tag.on('data', function (tag) {
             logTag(tag);tag.eachSensor(logSensor);
         });
-        tag.discoverSensors()['catch'](function (e) {
+        tag.discoverSensors().catch(function (e) {
             console.error(e.stack ? e.stack : e);throw e;
         });
     });
@@ -37,12 +37,12 @@ platform.on('discover', function (manager) {
         updater.startUpdateLoop();
         setTimeout(updater.stopUpdateLoop.bind(updater), END_AFTER);
         return tags; // only needed if we kept chaining
-    })['catch'](function (e) {
+    }).catch(function (e) {
         console.error(e.stack ? e.stack : e);
     });
 }); // end of platform.on()
 
-platform.connect(Platform.loadConfig())['catch'](function (e) {
+platform.connect(Platform.loadConfig()).catch(function (e) {
     console.error(e.stack ? e.stack : e);
 });
 

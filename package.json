@@ -11,7 +11,7 @@
     "pretest": "npm run lint",
     "doc": "jsdoc --access all -r -c .jsdoc-conf.json -d ./docs/ .",
     "predoc": "rm -rf docs/$npm_package_name/$npm_package_version",
-    "genjs": "cd examples; for d in *.js.md ; do erudite -o `basename $d .md` $d ; done"
+    "genjs": "cd examples; for d in *.js.md ; do erudite --preset es2015 -o `basename $d .md` $d ; done"
   },
   "repository": {
     "type": "git",
@@ -35,9 +35,10 @@
     "timeout-as-promise": "^1.0.0"
   },
   "devDependencies": {
+    "babel-preset-es2015": "^6.18.0",
     "chai": "*",
     "chai-as-promised": "^6.0.0",
-    "erudite": "^0.5.1",
+    "erudite": "^0.7.0",
     "jsdoc": "^3.4.3",
     "jshint": "^2.9.4",
     "mocha": "*",

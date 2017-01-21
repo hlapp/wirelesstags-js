@@ -145,8 +145,15 @@ PollingTagUpdater.prototype.removeTags = function(tags) {
  * @param {number} [waitTime] - the time to wait until scheduling the
  *                 next update; defaults to [UPDATE_LOOP_WAIT]{@link
  *                 module:plugins/polling-updater~UPDATE_LOOP_WAIT}.
+ * @param {module:wirelesstags~apiCallback} [callback] - result.value
+ *                 will be array of tag data objects returned by the
+ *                 polling API
  */
-PollingTagUpdater.prototype.startUpdateLoop = function(waitTime) {
+PollingTagUpdater.prototype.startUpdateLoop = function(waitTime, callback) {
+    if ('function' === typeof waitTime) {
+        callback = waitTime;
+        waitTime = undefined;
+    }
     if (waitTime === undefined) waitTime = UPDATE_LOOP_WAIT;
     if (waitTime > MAX_UPDATE_LOOP_WAIT) waitTime = MAX_UPDATE_LOOP_WAIT;
 
@@ -160,7 +167,8 @@ PollingTagUpdater.prototype.startUpdateLoop = function(waitTime) {
             // limit updates to that tag manager
             let mgrs = this.uniqueTagManagers();
             return pollForNextUpdate(client,
-                                     mgrs.length === 1 ? mgrs[0] : undefined);
+                                     mgrs.length === 1 ? mgrs[0] : undefined,
+                                     callback);
         }).then((tagDataList) => {
             tagDataList.forEach((tagData) => {
                 if (this.tagsByUUID[tagData.uuid]) {
@@ -179,7 +187,7 @@ PollingTagUpdater.prototype.startUpdateLoop = function(waitTime) {
             // with the preceding catch() this is in essence a finally()
             if (this._updateTimer) {
                 this._updateTimer = null;
-                this.startUpdateLoop(waitTime);
+                this.startUpdateLoop(waitTime, callback);
             }
             // otherwise we have been cancelled while running the update
         });
@@ -292,11 +300,15 @@ function createSoapClient(opts) {
  * @param {object} client - the SOAP client object
  * @param {WirelessTagManager} [tagManager] - the tag manager to which
  *                             to restrict updates (this is currently ignored)
+ * @param {module:wirelesstags~apiCallback} [callback] - if provided,
+ *                             the `tagManager` parameter must be
+ *                             provided too (even if as undefined or
+ *                             null)
  *
  * @returns {Promise} On success, resolves to an array of tag data objects
  */
-function pollForNextUpdate(client, tagManager) {
-    return new Promise((resolve, reject) => {
+function pollForNextUpdate(client, tagManager, callback) {
+    let req = new Promise((resolve, reject) => {
         let methodName = tagManager ?
             "GetNextUpdateForAllManagersOnDB" :
             "GetNextUpdateForAllManagers";
@@ -306,9 +318,20 @@ function pollForNextUpdate(client, tagManager) {
         soapMethod(args, function(err, result) {
             if (err) return reject(err);
             let tagDataList = JSON.parse(result[methodName + "Result"]);
+            try {
+                if (callback) callback(null, { object: tagManager,
+                                               value: tagDataList});
+            }
+            catch(err) {
+                console.error("error in callback:");
+                console.error(err.stack ? err.stack : err);
+                // no good reason to escalate an error thrown by callback
+            }
             resolve(tagDataList);
         });
     });
+    if (callback) req = req.catch((err) => { callback(err); throw err; });
+    return req;
 }
 
 module.exports = PollingTagUpdater;

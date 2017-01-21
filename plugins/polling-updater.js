@@ -6,10 +6,11 @@
  *
  * The SOAP endpoint (`/ethComet.asmx`) is undocumented, but is the
  * one used by the [client web application](http://wirelesstag.net/media/mytaglist.com/apidoc.html).
- * The difference is that this implementation uses a proper SOAP API
- * interface (in contrast to hand-building the XML to be transmitted,
- * and to parsing the returned XML with a regex), and that it calls a
- * different method at that endpoint.
+ * The difference to the client web application is that this
+ * implementation uses a proper SOAP API interface (in contrast to
+ * hand-building the XML to be transmitted, and to parsing the
+ * returned XML with a regex), and that it calls a different method at
+ * that endpoint.
  *
  * This updater should receive updates resulting from armed sensors
  * going below or above their configured thresholds, or detecting
@@ -141,6 +142,8 @@ PollingTagUpdater.prototype.removeTags = function(tags) {
  * Starts the continuous update loop. Registered tags will get updated
  * until they are removed, or [stopUpdateLoop()]{@link module:plugins/polling-updater~PollingTagUpdater#stopUpdateLoop}
  * is called.
+ *
+ * Has no effect if a continuous update loop is already running.
  *
  * @param {number} [waitTime] - the time to wait until scheduling the
  *                 next update; defaults to [UPDATE_LOOP_WAIT]{@link

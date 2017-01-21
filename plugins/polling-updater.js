@@ -91,9 +91,14 @@ function PollingTagUpdater(platform, config) {
 }
 
 /**
- * Adds the given tags to the ones to be updated by this updater.
+ * Adds the given tag object(s) to the ones to be updated by this updater.
  *
- * @param {(WirelessTag|WirelessTag[])} tags - the tags (or the tag) to
+ * Adding the same (determined by identity) object again has no
+ * effect. However, an object that represents the same tag as one
+ * already added (i.e., has the same `uuid` property value) will be
+ * registered for updates, too.
+ *
+ * @param {(WirelessTag|WirelessTag[])} tags - the tag object(s) to
  *                                           be updated
  *
  * @return {module:plugins/polling-updater~PollingTagUpdater}
@@ -101,7 +106,11 @@ function PollingTagUpdater(platform, config) {
 PollingTagUpdater.prototype.addTags = function(tags) {
     if (!Array.isArray(tags)) tags = [tags];
     for (let tag of tags) {
-        this.tagsByUUID[tag.uuid] = tag;
+        if (this.tagsByUUID[tag.uuid]) {
+            this.tagsByUUID[tag.uuid].add(tag);
+        } else {
+            this.tagsByUUID[tag.uuid] = new Set([tag]);
+        }
     }
     return this;
 };
@@ -109,7 +118,11 @@ PollingTagUpdater.prototype.addTags = function(tags) {
 /**
  * Removes the given tags from the ones to be updated by this updater.
  *
- * @param {(WirelessTag|WirelessTag[])} tags - the tags (or the tag) to
+ * Note that only the given object(s) will be removed. Specifically,
+ * other tag objects with the same `uuid` property value, if
+ * previously added, remain registered.
+ *
+ * @param {(WirelessTag|WirelessTag[])} tags - the tag object(s) to
  *                                           be removed from updating
  *
  * @return {module:plugins/polling-updater~PollingTagUpdater}
@@ -117,7 +130,9 @@ PollingTagUpdater.prototype.addTags = function(tags) {
 PollingTagUpdater.prototype.removeTags = function(tags) {
     if (tags && !Array.isArray(tags)) tags = [tags];
     for (let tag of tags) {
-        delete this.tagsByUUID[tag.uuid];
+        if (this.tagsByUUID[tag.uuid]) {
+            this.tagsByUUID[tag.uuid].delete(tag);
+        }
     }
     return this;
 };
@@ -143,17 +158,16 @@ PollingTagUpdater.prototype.startUpdateLoop = function(waitTime) {
         this.apiClient().then((client) => {
             // if all tags are associated with a single tag manager,
             // limit updates to that tag manager
-            let mgrs = Object.keys(this.tagsByUUID).map((uuid) => {
-                return this.tagsByUUID[uuid].wirelessTagManager;
-            }).reduce((all, mgr) => {
-                if (all.length === 0 || all[0].mac !== mgr.mac) all.push(mgr);
-                return all;
-            }, []);
+            let mgrs = this.uniqueTagManagers();
             return pollForNextUpdate(client,
                                      mgrs.length === 1 ? mgrs[0] : undefined);
         }).then((tagDataList) => {
             tagDataList.forEach((tagData) => {
-                updateTag(this.tagsByUUID[tagData.uuid], tagData);
+                if (this.tagsByUUID[tagData.uuid]) {
+                    this.tagsByUUID[tagData.uuid].forEach((tag) => {
+                        updateTag(tag, tagData);
+                    });
+                }
             });
             // reset wait time upon success
             waitTime = undefined;
@@ -201,6 +215,23 @@ PollingTagUpdater.prototype.apiClient = function() {
         this.client = client;
         return client;
     });
+};
+
+/**
+ * Determines the list of tag managers with unique MACs used by the
+ * tag objects registered with this updater, and returns it.
+ *
+ * @returns {WirelessTagManager[]}
+ */
+PollingTagUpdater.prototype.uniqueTagManagers = function() {
+    let mgrs = Object.keys(this.tagsByUUID).map((uuid) => {
+        let tags = Array.from(this.tagsByUUID[uuid]);
+        return tags.length > 0 ? tags[0].wirelessTagManager : undefined;
+    }).reduce((all, mgr) => {
+        if (mgr && (all.length === 0 || all[0].mac !== mgr.mac)) all.push(mgr);
+        return all;
+    }, []);
+    return mgrs;
 };
 
 /**

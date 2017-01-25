@@ -104,7 +104,7 @@ describe('Updating Tags:', function() {
         let dataSpy = sinon.spy();
         let tag;
 
-        it("should promise tag with changed \'updateInterval\'",
+        it("should be inconsequential if no change in value",
            function() {
                // skip this if we don't have connection information
                if (credentialsMissing) return this.skip();
@@ -113,10 +113,29 @@ describe('Updating Tags:', function() {
                origUpdateInterval = focusTag.updateInterval;
                tagToReset = focusTag;
 
+               let startTime = Date.now();
+               tag.on('data', dataSpy);
+               return expect(
+                   tag.setUpdateInterval(tag.updateInterval).then(() => {
+                       return Date.now();
+                   })
+               ).to.be.eventually.below(startTime + 40);
+           });
+        it('should then not emit \'data\' event', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            return expect(dataSpy).to.have.not.been.called;
+        });
+        it("should promise tag with changed \'updateInterval\'",
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
                // this call can take some time, so be generous with timeout
                this.timeout(10 * 1000);
 
-               tag.on('data', dataSpy);
+               dataSpy.reset();
                return expect(tag.setUpdateInterval(testInterval)).
                    to.eventually.satisfy((t) => {
                        return t.updateInterval === testInterval;

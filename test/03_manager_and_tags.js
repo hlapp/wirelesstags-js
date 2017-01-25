@@ -406,12 +406,17 @@ describe('WirelessTag:', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
 
+            function tolerance(interval) {
+                let tol = interval * 1000 * 0.15;    // 15% of interval
+                return  (tol < 15000) ? tol : 15000; // but at least 15sec
+            }
+
             tags.forEach((tag) => {
                 expect(tag.lastUpdated().getTime()).
                     to.be.at.least(Date.now()
                                    - tag.updateInterval * 1000
                                    - 55 * 1000 /* time cloud is about behind */
-                                   - 45 * 1000 /* 45 seconds tolerance */ );
+                                   - tolerance(tag.updateInterval));
             });
         });
     });

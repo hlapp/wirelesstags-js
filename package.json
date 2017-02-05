@@ -27,6 +27,9 @@
     "url": "https://github.com/hlapp/wirelesstags-js/issues"
   },
   "homepage": "https://github.com/hlapp/wirelesstags-js#readme",
+  "engines": {
+    "node": ">=4.0"
+  },
   "dependencies": {
     "deep-equal": ">=1.0.1",
     "promise-retry": "^1.1.1",

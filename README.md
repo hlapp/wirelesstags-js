@@ -104,7 +104,7 @@ var opts = { username: 'foo@bar.com', password: 'supersecret' };
 opts = WirelessTagPlatform.loadConfig();
 ```
 
-#### Connect and discover tag managers using events handlers
+#### Connect and discover tag managers using event handlers
 
 ```javascript
 platform.on('connect', () => {
@@ -118,6 +118,13 @@ platform.on('discover', (tagManager) => {
 platform.connect(opts)
 ```
 
+A platform instance (since v0.6.0) caches tag manager objects
+resulting from a call to `discoverTagManagers()`. Subsequent calls
+will not update properties of these objects, but emit `discover`
+events only for newly found (not previously cached) tag managers. This
+allows an application to scan periodically for new tag managers,
+without receiving `discover` events redundantly for the same objects.
+
 #### Connect and discover tag managers using returned promises
 
 ```javascript
@@ -130,28 +137,37 @@ platform.connect(opts).then(() => {
 });
 ```
 
+The method always promises _all_ tag manager objects found (hence the
+number of `discover` events fired will only on the first call be the
+same as the number of objects promised). Since v0.6.0, if called
+repeatedly the objects promised for tag managers discovered previously
+will be the same (but with updated properties), allowing an
+application to scan periodically for new tag managers without losing
+the application's state of prviously returnd objects.
+
 ### Discovering tags and their sensors
 
 The tag manager object emits `discover` events for each tag associated
-with it after starting discovery with `tagManager.discoverTags()`. In
-the same way, tag objects emit `discover` events for each of their
+with it after starting discovery by calling `tagManager.discoverTags()`.
+In the same way, tag objects emit `discover` events for each of their
 newly found sensors after initiating discovery with
 `tag.discoverSensors()`.
 
-As before, the discovery methods also return promises of arrays of
-tags and sensors, respectively. Either approach can be used. The
-`tag.discoverSensors()` method always promises an array of all its
-sensors, whereas it emits `discover` events only for newly found
-sensors. Once found, subsequent `tag.discoverSensors()` calls will
-promise the same sensor objects. In contrast, the other discovery
-methods always emit the same number of events as there are number of
-elements in the promised array of discovered objects, and the objects
-(in the promised array, or passed to listeners) are always new
-objects. That is, tags cache their sensors (and indeed tags in
-practice don't lose sensors), but tag managers and platform objects
-don't cache their tags and tag managers, respectively (and indeed in
-practice tags can be dynamically associated with or disassociated from
-tag managers, as well as tag managers from accounts).
+The discovery methods also promise arrays of tags and sensors,
+respectively. Either approach (promises or events) can be used.
+
+The `tag.discoverSensors()` method always promises an array of _all_
+its sensors, whereas it emits `discover` events _only_ for newly found
+sensors. Subsequent `tag.discoverSensors()` calls will promise the
+same sensor objects (unless there were new sensors, but the current
+generation of Wireless Tags cannot dynamically gain sensors).
+
+In contrast, `tagManager.discoverTags()` always emits the same number
+of events as there are elements in the promised array of tag objects,
+and the tag objects are always new objects, because tag manager
+objects don't cache their associated tag objects. Indeed in practice
+tags can be dynamically associated with or disassociated from tag
+managers.
 
 #### Discovering tags and sensors using event handlers
 
@@ -170,13 +186,48 @@ tagManager.on('discover', (tag) => {
 tagManager.discoverTags();
 ```
 
-#### Discovering tags and sensors using returned promises
+#### Discovering tags and sensors using promises
 
 ```javascript
 tagManager.discoverTags().then((tags) => {
     tags.forEach((tag) => {
         console.log("Tag", tag.name, "(slaveId=" + tag.slaveId + ")", tag.uuid);
     });
+    return Promise.all(tags.map((tag) => { return tag.discoverSensors(); }));
+}).then((sensorLists) => {
+    sensorLists.forEach((sensors) => {
+        var tag = sensors[0].wirelessTag;
+        console.log("Sensors of tag", tag.name, tag.uuid);
+        sensors.forEach((sensor) => {
+            console.log("..", sensor.sensorType, "sensor");
+            console.log("    reading:", sensor.reading);
+            console.log("    state:", sensor.eventState);
+            console.log("    armed:", sensor.isArmed());
+        });
+    });
+});
+```
+
+#### Discovering tags and sensors directly from platform
+
+Since v0.6.0, tag objects can be discovered directly in one go from
+the platform object, without first finding the tag manager objects.
+
+In terms of performance as determined by the sequence of cloud API
+calls, there is no difference to finding the tag managers first if
+only one tag manager is accessible to the connected account. However,
+in the case of multiple tag managers under the account, the difference
+can be notable (because currently the cloud API does not support
+filtering tags by tag manager at the server).
+
+```javascript
+platform.discoverTags().then((tags) => {
+    tags.forEach((tag) => {
+        console.log("Tag", tag.name, "of", tag,wirelessTagManager.name,
+                    "(slaveId=" + tag.slaveId + ")", tag.uuid);
+    });
+    // the following may need rate-limiting if there are many tags
+    // (e.g., see package p-limit for rate-limiting promises)
     return Promise.all(tags.map((tag) => { return tag.discoverSensors(); }));
 }).then((sensorLists) => {
     sensorLists.forEach((sensors) => {
@@ -230,7 +281,7 @@ object. For example, in `platform.isConnected(cb)`, `cb` will be
 called with `{ object: platform, value: false }` if the instance
 wasn't yet connected.
 
-It is considered a bad idea, and not supported (even if it happens to
+It is considered a bad idea, and not supported (even if it may often
 work) to mix passing callbacks _and_ using the returned Promises.
 
 Note that callback behaviour is not currently tested as part of the
@@ -247,7 +298,7 @@ functionality:
   directory for tutorial scripts that give basic, but fully working
   demonstrations of how the library can be used.
 
-Use at your own peril, and consider looking at the (meanwhile farily
+Use at your own peril, and consider looking at the (meanwhile fairly
 comprehensive) tests for guidance.
 
 ## How to support

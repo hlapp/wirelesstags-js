@@ -242,8 +242,7 @@ This library should be considered beta. Full API documentation is
 only starting to come into place, and remains lacking for most of its
 functionality:
 
-* [Online API documentation](http://lappland.io/wirelesstags-js/wirelesstags/0.5.3)
-  for version v0.5.3
+* [Online API documentation](http://lappland.io/wirelesstags-js/wirelesstags/0.5.5)
 * See the [`examples/`](https://github.com/hlapp/wirelesstags-js/tree/master/examples)
   directory for tutorial scripts that give basic, but fully working
   demonstrations of how the library can be used.

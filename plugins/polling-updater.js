@@ -310,6 +310,19 @@ function updateTag(tag, tagData) {
     tag.data = tagData;
 }
 
+/**
+ * Creates a tag object from the given attribute data object, and returns it.
+ *
+ * @param {object} tagData - the attribute data object as returned by
+ *             the polling API endpoint
+ * @param {WirelessTagPlatform} platform - the platform instance for
+ *             creating tag and tag manager objects. If the value does
+ *             not provide a factory, `factory` must be provided.
+ * @param {WirelessTagPlatform~factory} [factory] - the tag and tag
+ *             manager object factory to use
+ * @returns {WirelessTag}
+ * @private
+ */
 function createTag(tagData, platform, factory) {
     let mgrData = {};
     managerProps.forEach((k) => {

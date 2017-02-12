@@ -251,6 +251,8 @@ PollingTagUpdater.prototype.uniqueTagManagers = function() {
  * @param {WirelessTag} tag - the tag object to be updated
  * @param {object} tagData - the data to update the tag object with;
  *                 this is normally returned from the API endpoint
+ *
+ * @private
  */
 function updateTag(tag, tagData) {
     // if not a valid object for receiving updates, we are done
@@ -283,6 +285,7 @@ function updateTag(tag, tagData) {
  *                 module:plugins/polling-updater~WSDL_URL_PATH}
  *
  * @returns {Promise} On success, resolves to the created SOAP client object
+ * @private
  */
 function createSoapClient(opts) {
     let wsdl = opts && opts.wsdl_url ?
@@ -301,13 +304,14 @@ function createSoapClient(opts) {
  *
  * @param {object} client - the SOAP client object
  * @param {WirelessTagManager} [tagManager] - the tag manager to which
- *                             to restrict updates (this is currently ignored)
+ *                             to restrict updates
  * @param {module:wirelesstags~apiCallback} [callback] - if provided,
  *                             the `tagManager` parameter must be
  *                             provided too (even if as undefined or
  *                             null)
  *
  * @returns {Promise} On success, resolves to an array of tag data objects
+ * @private
  */
 function pollForNextUpdate(client, tagManager, callback) {
     let req = new Promise((resolve, reject) => {

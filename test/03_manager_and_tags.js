@@ -406,9 +406,13 @@ describe('WirelessTag:', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
 
+            // Ideally we could choose a relatively tight tolerance.
+            // However, we're testing whether this library works, not
+            // the reliability of the hardware.
             function tolerance(interval) {
-                let tol = interval * 1000 * 0.15;    // 15% of interval
-                return  (tol < 15000) ? tol : 15000; // but at least 15sec
+                const minTol = 30000;                // at least 30sec
+                let tol = interval * 1000 * 0.20;    // or 20% of interval
+                return  (tol > minTol) ? tol : minTol; 
             }
 
             tags.forEach((tag) => {

@@ -221,9 +221,9 @@ PollingTagUpdater.prototype.stopUpdateLoop = function() {
  * @returns {Promise} Resolves to the SOAP client object.
  */
 PollingTagUpdater.prototype.apiClient = function() {
-    if (this.client) return Promise.resolve(this.client);
+    if (this._client) return Promise.resolve(this._client);
     return createSoapClient(this.options).then((client) => {
-        this.client = client;
+        this._client = client;
         return client;
     });
 };
@@ -238,11 +238,10 @@ PollingTagUpdater.prototype.uniqueTagManagers = function() {
     let mgrs = Object.keys(this.tagsByUUID).map((uuid) => {
         let tags = Array.from(this.tagsByUUID[uuid]);
         return tags.length > 0 ? tags[0].wirelessTagManager : undefined;
-    }).reduce((all, mgr) => {
-        if (mgr && (all.length === 0 || all[0].mac !== mgr.mac)) all.push(mgr);
-        return all;
-    }, []);
-    return mgrs;
+    });
+    let mgrByMAC = new Map();
+    mgrs.forEach( (mgr) => mgrByMAC.set(mgr.mac, mgr) );
+    return Array.from(mgrByMAC.values());
 };
 
 /**

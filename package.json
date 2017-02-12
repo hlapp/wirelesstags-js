@@ -9,7 +9,7 @@
     "test:rw": "npm run test -- test/{04}_*.js",
     "lint": "jshint index.js lib/*.js lib/error/*.js examples/*.js plugins/*.js test/*.js",
     "pretest": "npm run lint",
-    "doc": "jsdoc --access all -r -c .jsdoc-conf.json -d ./docs/ .",
+    "doc": "jsdoc -r -c .jsdoc-conf.json -d ./docs/ .",
     "predoc": "rm -rf docs/$npm_package_name/$npm_package_version",
     "genjs": "cd examples; for d in *.js.md ; do erudite --preset es2015 -o `basename $d .md` $d ; done"
   },

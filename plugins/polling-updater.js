@@ -12,6 +12,14 @@
  * returned XML with a regex), and that it calls a different method at
  * that endpoint.
  *
+ * This updater can operate in two modes. In the default mode, only those
+ * tag objects previously registered are updated, and all other data
+ * updates returned by the polling API are ignored. In discovery mode,
+ * data updates for which no matching tag object is registered will
+ * result in new tag objects to be created on the fly, and for each of
+ * these a `data` event is emitted by the updater (instead of by the
+ * registered tag).
+ *
  * This updater should receive updates resulting from armed sensors
  * going below or above their configured thresholds, or detecting
  * motion. The one caveat is that there is a short wait time (see
@@ -26,7 +34,9 @@
  */
 
 var request = require('request'),
-    soap = require('soap');
+    soap = require('soap'),
+    util = require('util'),
+    EventEmitter = require('events');
 
 /**
  * @const {string} - the path (relative to `API_BASE_URI`) of the WSDL
@@ -62,34 +72,55 @@ const MAX_UPDATE_LOOP_WAIT = 30 * 60 * 1000;
  * Creates the updater instance.
  *
  * @param {WirelessTagPlatform} [platform] - Platform object through
- *                              which tags to be updated were (or are
- *                              going to be) found. Used solely for
- *                              possibly overriding configuration
- *                              options, specifically the base URI for
- *                              the cloud API endpoints.
- * @param {object} [config] - overriding configuration options
- * @param {string} [config.wsdl_url] - the full path for obtaining the
- *                              WSDL for the SOAP service to be polled
- *                              (default: [WSDL_URL_PATH]{@link
- *                              module:plugins/polling-updater~WSDL_URL_PATH})
- * @param {string} [config.apiBaseURI] - the base URI to use for API
- *                              endpoints (default:
- *                              [API_BASE_URI]{@link
- *                              module:plugins/polling-updater~API_BASE_URI})
+ *               which tags to be updated were (or are going to be)
+ *               found (or created in discovery mode). In normal mode,
+ *               this is only used to possibly override configuration
+ *               options, specifically the base URI for the cloud API
+ *               endpoints. For discovery mode to work, either this or
+ *               `options.factory` must be provided.
+ * @param {object} [options] - overriding configuration options
+ * @param {string} [options.wsdl_url] - the full path for obtaining
+ *               the WSDL for the SOAP service to be polled (default:
+ *               [WSDL_URL_PATH]{@link module:plugins/polling-updater~WSDL_URL_PATH})
+ * @param {string} [options.apiBaseURI] - the base URI to use for API
+ *               endpoints (default: [API_BASE_URI]{@link
+ *               module:plugins/polling-updater~API_BASE_URI})
+ * @param {boolean} [options.discoveryMode] - whether to run in
+ *               discovery mode or not. Defaults to `false`.
+ * @param {WirelessTagPlatform~factory} [options.factory] - the tag
+ *               and tag manager object factory to use in discovery
+ *               mode. Either this, or the `platform` parameter must
+ *               be provided for discovery mode to work.
  *
  * @constructor
  */
-function PollingTagUpdater(platform, config) {
+function PollingTagUpdater(platform, options) {
+    EventEmitter.call(this);
     this.tagsByUUID = {};
-    this.options = Object.assign({}, config);
+    this.options = Object.assign({}, options);
     if (! this.options.wsdl_url) {
         let apiBaseURI;
         if (platform) apiBaseURI = platform.apiBaseURI;
-        if (config && config.apiBaseURI) apiBaseURI = config.apiBaseURI;
+        if (options && options.apiBaseURI) apiBaseURI = options.apiBaseURI;
         if (! apiBaseURI) apiBaseURI = API_BASE_URI;
         this.options.wsdl_url = apiBaseURI + WSDL_URL_PATH;
     }
+    /**
+     * @name discoveryMode
+     * @type {boolean}
+     * @memberof module:plugins/polling-updater~PollingTagUpdater#
+     */
+    Object.defineProperty(this, "discoveryMode", {
+        enumerable: true,
+        get: function() { return this.options.discoveryMode },
+        set: function(v) { this.options.discoveryMode = v }
+    });
+    /** @member {WirelessTagPlatform} */
+    this.platform = platform;
+    /** @member {WirelessTagPlatform~factory} */
+    this.factory = options.factory;
 }
+util.inherits(PollingTagUpdater, EventEmitter);
 
 /**
  * Adds the given tag object(s) to the ones to be updated by this updater.
@@ -168,18 +199,25 @@ PollingTagUpdater.prototype.startUpdateLoop = function(waitTime, callback) {
         this.apiClient().then((client) => {
             // if all tags are associated with a single tag manager,
             // limit updates to that tag manager
-            let mgrs = this.uniqueTagManagers();
+            let mgrs = this.discoveryMode ? [] : this.uniqueTagManagers();
             return pollForNextUpdate(client,
                                      mgrs.length === 1 ? mgrs[0] : undefined,
                                      callback);
         }).then((tagDataList) => {
+            const EMPTY = { size: () => 0 };
+            let newTagProms = [];
             tagDataList.forEach((tagData) => {
-                if (this.tagsByUUID[tagData.uuid]) {
-                    this.tagsByUUID[tagData.uuid].forEach((tag) => {
-                        updateTag(tag, tagData);
-                    });
+                let tagObjs = this.tagsByUUID[tagData.uuid] || EMPTY;
+                if (tagObjs.size > 0) {
+                    tagObjs.forEach( (tag) => updateTag(tag, tagData) );
+                } else if (this.discoveryMode) {
+                    newTagProms.push(createTag(tagData,
+                                               this.platform, this.factory));
                 }
             });
+            return Promise.all(newTagProms);
+        }).then((newTagList) => {
+            newTagList.forEach( (tag) => this.emit('data', tag) );
             // reset wait time upon success
             waitTime = undefined;
         }).catch((err) => {
@@ -244,6 +282,8 @@ PollingTagUpdater.prototype.uniqueTagManagers = function() {
     return Array.from(mgrByMAC.values());
 };
 
+const managerProps = ['managerName','mac','dbid','mirrors'];
+
 /**
  * Updates the tag corresponding to the given tag data. Does nothing
  * if the respective tag is undefined or null.
@@ -265,11 +305,30 @@ function updateTag(tag, tagData) {
     }
     // we don't currently have anything more to do for the extra properties
     // identifying the tag manager, so simply get rid of them
-    ['managerName','mac','dbid','mirrors'].forEach((k) => {
-        delete tagData[k];
-    });
+    managerProps.forEach( (k) => { delete tagData[k] } );
     // almost done
     tag.data = tagData;
+}
+
+function createTag(tagData, platform, factory) {
+    let mgrData = {};
+    managerProps.forEach((k) => {
+        let mk = k.replace(/^manager([A-Z])/,'$1');
+        if (mk !== k) mk = mk.toLowerCase();
+        mgrData[mk] = tagData[k];
+        delete tagData[k];
+    });
+    if (! platform) platform = {};
+    if (! factory) factory = platform.factory;
+    if (! factory) throw new TypeError("must have valid platform object or "
+                                       + "object factory in discovery mode");
+    let mgrProm = platform.findTagManager ?
+        platform.findTagManager(mgrData.mac) :
+        Promise.resolve(factory.createTagManager(mgrData));
+    return mgrProm.then((mgr) => {
+        if (! mgr) throw new Error("no such tag manager: " + mgrData.mac);
+        return factory.createTag(mgr, tagData);
+    });
 }
 
 /**

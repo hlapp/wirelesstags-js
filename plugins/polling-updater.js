@@ -118,7 +118,7 @@ function PollingTagUpdater(platform, options) {
     /** @member {WirelessTagPlatform} */
     this.platform = platform;
     /** @member {WirelessTagPlatform~factory} */
-    this.factory = options.factory;
+    this.factory = this.options.factory;
 }
 util.inherits(PollingTagUpdater, EventEmitter);
 

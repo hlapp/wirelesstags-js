@@ -60,6 +60,34 @@ describe('WirelessTagPlatform:', function() {
         });
     });
 
+    describe('#disconnect()', function() {
+        let connectSpy = sinon.spy();
+        
+        it('should promise to disconnect platform to cloud API', function() {
+
+            platform.on('disconnect', connectSpy);
+            return expect(platform.disconnect()).to.
+                eventually.equal(platform);
+        });
+        it('should emit "disconnect" event upon connection', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            expect(connectSpy).to.have.been.calledWith(platform);
+        });
+        it('should make isConnected() promise false', function() {
+            return expect(platform.isConnected()).to.eventually.be.false;
+        });
+
+        after('reconnect', function() {
+            let connOpts = WirelessTagPlatform.loadConfig();
+             
+            if ((connOpts.username && connOpts.password) || connOpts.bearer) {
+                return platform.connect(connOpts);
+            }
+        });
+    });
+
     describe('#discoverTagManagers()', function() {
         let discoverSpy = sinon.spy();
         

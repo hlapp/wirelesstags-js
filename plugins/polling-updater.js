@@ -105,6 +105,7 @@ function PollingTagUpdater(platform, options) {
         if (! apiBaseURI) apiBaseURI = API_BASE_URI;
         this.options.wsdl_url = apiBaseURI + WSDL_URL_PATH;
     }
+
     /**
      * @name discoveryMode
      * @type {boolean}
@@ -115,8 +116,26 @@ function PollingTagUpdater(platform, options) {
         get: function() { return this.options.discoveryMode },
         set: function(v) { this.options.discoveryMode = v }
     });
-    /** @member {WirelessTagPlatform} */
+
+    let h = this.stopUpdateLoop.bind(this);
+    /**
+     * @name platform
+     * @type {WirelessTagPlatform}
+     * @memberof module:plugins/polling-updater~PollingTagUpdater#
+     */
+    Object.defineProperty(this, "platform", {
+        enumerable: true,
+        get: function() { return this._platform },
+        set: function(p) {
+            if (this._platform) {
+                this._platform.removeListener('disconnect', h);
+            }
+            this._platform = p;
+            if (p) p.on('disconnect', h);
+        }
+    });
     this.platform = platform;
+
     /** @member {WirelessTagPlatform~factory} */
     this.factory = this.options.factory;
 }

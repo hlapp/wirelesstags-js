@@ -53,6 +53,7 @@ describe('WirelessTagPlatform:', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
 
+            platform.removeListener('connect', connectSpy);
             expect(connectSpy).to.have.been.calledWith(platform);
         });
         it('should make isConnected() promise true', function() {
@@ -73,6 +74,7 @@ describe('WirelessTagPlatform:', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
 
+            platform.removeListener('disconnect', connectSpy);
             expect(connectSpy).to.have.been.calledWith(platform);
         });
         it('should make isConnected() promise false', function() {

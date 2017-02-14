@@ -235,12 +235,14 @@ PollingTagUpdater.prototype.apiClient = function() {
  * @returns {WirelessTagManager[]}
  */
 PollingTagUpdater.prototype.uniqueTagManagers = function() {
-    let mgrs = Object.keys(this.tagsByUUID).map((uuid) => {
-        let tags = Array.from(this.tagsByUUID[uuid]);
-        return tags.length > 0 ? tags[0].wirelessTagManager : undefined;
-    });
     let mgrByMAC = new Map();
-    mgrs.forEach( (mgr) => mgrByMAC.set(mgr.mac, mgr) );
+    Object.keys(this.tagsByUUID).forEach((uuid) => {
+        let tags = Array.from(this.tagsByUUID[uuid]);
+        if (tags.length > 0) {
+            let mgr = tags[0].wirelessTagManager;
+            mgrByMAC.set(mgr.mac, mgr);
+        }
+    });
     return Array.from(mgrByMAC.values());
 };
 

@@ -299,7 +299,7 @@ PollingTagUpdater.prototype.uniqueTagManagers = function() {
             let mgr = tags[0].wirelessTagManager;
             mgrByMAC.set(mgr.mac, mgr);
         }
-    })
+    });
     return Array.from(mgrByMAC.values());
 };
 

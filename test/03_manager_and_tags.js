@@ -1066,6 +1066,29 @@ describe('WirelessTagSensor:', function() {
                });
            });
 
+        it('should allow changing \'unit\' for temp to degF',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return s.sensorType === 'temp';
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               let origUnits = [];
+               toTest.forEach((sensor) => {
+                   origUnits.push(sensor.monitoringConfig().unit);
+                   sensor.monitoringConfig().unit = "degF";
+               });
+               toTest.forEach((sensor) => {
+                   let mconf = sensor.monitoringConfig();
+                   expect(mconf.unit).to.be.a('string').and.to.equal("degF");
+                   mconf.unit = origUnits.shift();
+               });
+           });
+
         it('should have \'gracePeriod\' for outofrange',
            function() {
                // skip this if we don't have connection information
@@ -1122,6 +1145,10 @@ describe('WirelessTagSensor:', function() {
                    return expect(sensor.monitoringConfig().gracePeriod).
                        to.equal(1800);
                });
+           });
+
+           after('ensure monitoringConfig isn\'t dirty', function() {
+               sensors.forEach( (sensor) => sensor.monitoringConfig().resetModified() );
            });
     });
 

@@ -178,7 +178,7 @@ describe('WirelessTagPlatform:', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
 
-            expect(Date.now() - startTime).to.be.above(60);
+            expect(Date.now() - startTime).to.be.above(35);
         });
         it('should emit \'discover\' event when not cached', function() {
             // skip this if we don't have connection information

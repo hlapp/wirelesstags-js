@@ -1089,6 +1089,70 @@ describe('WirelessTagSensor:', function() {
                });
            });
 
+        it('should give temp reading and thresholds in ºF if \'unit\' is degF',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return s.sensorType === 'temp';
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               let origUnits = [];
+               let readings = [];
+               let thresholds = [];
+               let degCtoF = (x, isDelta) => (x * 9/5.0) + (isDelta ? 0 : 32);
+               toTest.forEach((sensor) => {
+                   origUnits.push(sensor.monitoringConfig().unit);
+                   readings.push(sensor.reading);
+                   thresholds.push(Object.assign({}, sensor.monitoringConfig().thresholds));
+                   sensor.monitoringConfig().unit = "degF";
+               });
+               toTest.forEach((sensor) => {
+                   let mconf = sensor.monitoringConfig();
+                   let ths = mconf.thresholds;
+                   let oldThs = thresholds.shift();
+                   expect(sensor.reading).
+                       to.be.closeTo(degCtoF(readings.shift()), 0.1);
+                   expect(ths.lowValue).
+                       to.be.closeTo(degCtoF(oldThs.lowValue), 0.1);
+                   expect(ths.highValue).
+                       to.be.closeTo(degCtoF(oldThs.highValue), 0.1);
+                   expect(ths.hysteresis).
+                       to.be.closeTo(degCtoF(oldThs.hysteresis, true), 0.1);
+                   mconf.unit = origUnits.shift();
+               });
+           });
+
+        it('should set temp thresholds in ºF if \'unit\' is degF',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               let toTest = sensors.filter((s) => {
+                   return s.sensorType === 'temp';
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.forEach((sensor) => {
+                   let mconf = sensor.monitoringConfig();
+                   let ths = mconf.thresholds;
+                   let origUnit = mconf.unit;
+                   mconf.unit = "degF";
+                   ths.lowValue = 32;
+                   ths.hysteresis = 9/5.0;
+                   expect(ths.lowValue).to.equal(32);
+                   expect(ths.hysteresis).to.equal(9/5.0);
+                   mconf.unit = "degC";
+                   expect(ths.lowValue).to.equal(0);
+                   expect(ths.hysteresis).to.equal(1.0);
+                   mconf.unit = origUnit;
+               });
+           });
+
         it('should have \'gracePeriod\' for outofrange',
            function() {
                // skip this if we don't have connection information

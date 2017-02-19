@@ -256,6 +256,25 @@ sensor, for example `tag.lightSensor()`. The method
 `tag.sensorCapabilities()` returns an array of strings denoting the
 possible zzzz values.
 
+#### Changing the temperature unit
+
+By default temperature sensors give their readings and monitoring thresholds
+in ºC. The unit can be changed by setting `sensor.monitoringConfig().unit`:
+
+```js
+if (sensor.sensorType === "temp") {
+    // temperature reading and thresholds in ºC:
+    sensor.monitoringConfig().unit = "degC";
+    // temperature reading and thresholds in ºF:
+    sensor.monitoringConfig().unit = "degF";
+    // if desired, the change can be saved to become persistent:
+    sensor.monitoringConfig().save().then((mconfig) => {
+        console.log("saved monitoring config of temp of", sensor.wirelessTag.name);
+        console.log("... unit is now", mconfig.unit);
+    });
+}
+```
+
 ### Updating sensor values and tag information
 
 Updating the tag object's data also updates its sensors. `tag.update()`

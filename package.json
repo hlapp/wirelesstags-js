@@ -42,7 +42,7 @@
     "chai": "*",
     "chai-as-promised": "^6.0.0",
     "erudite": "^0.7.1",
-    "jsdoc": "^3.4.3",
+    "jsdoc": "hlapp/jsdoc#fix-resourcepath-resolution-3.4",
     "jshint": "^2.9.4",
     "mocha": "*",
     "p-any": "^1.0.0",

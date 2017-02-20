@@ -26,8 +26,8 @@ The principle flow is taken straight from {@tutorial read-sensors.js}:
 
 ### Create platform object
 
-    var Platform = require('wirelesstags'),
-        platform = Platform.create();
+    var Platform = require('wirelesstags');
+    var platform = Platform.create();
 
 ### Create tag updater
 
@@ -81,9 +81,14 @@ sensors.
         manager.on('discover', (tag) => {
             logTag(tag);
             tag.on('discover', (sensor) => { logSensor(sensor); });
-            tag.on('data', (tag) => { logTag(tag); tag.eachSensor(logSensor); });
-            tag.discoverSensors().
-                catch((e) => { console.error(e.stack ? e.stack : e); throw e; });
+            tag.on('data', (tagObj) => {
+                logTag(tagObj);
+                tagObj.eachSensor(logSensor);
+            });
+            tag.discoverSensors().catch((e) => {
+                console.error(e.stack ? e.stack : e);
+                throw e;
+            });
         });
 
 Now ask the tag manager to find associated tags (which will trigger

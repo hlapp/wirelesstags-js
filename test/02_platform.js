@@ -25,7 +25,7 @@ describe('WirelessTagPlatform:', function() {
 
         it('should promise connection status', function() {
             return expect(platform.isConnected()).to.eventually.be.a('boolean').
-                then((status) => { connected = status; });
+                then((status) => { connected = status });
         });
         it('should promise false initially', function() {
             return expect(connected).to.be.false;
@@ -34,7 +34,7 @@ describe('WirelessTagPlatform:', function() {
 
     describe('#connect()', function() {
         let connectSpy = sinon.spy();
-        
+
         it('should promise to connect platform to cloud API', function() {
             let connOpts = WirelessTagPlatform.loadConfig();
 
@@ -63,7 +63,7 @@ describe('WirelessTagPlatform:', function() {
 
     describe('#disconnect()', function() {
         let connectSpy = sinon.spy();
-        
+
         it('should promise to disconnect platform to cloud API', function() {
 
             platform.on('disconnect', connectSpy);
@@ -83,7 +83,7 @@ describe('WirelessTagPlatform:', function() {
 
         after('reconnect', function() {
             let connOpts = WirelessTagPlatform.loadConfig();
-             
+
             if ((connOpts.username && connOpts.password) || connOpts.bearer) {
                 return platform.connect(connOpts);
             }
@@ -92,7 +92,7 @@ describe('WirelessTagPlatform:', function() {
 
     describe('#discoverTagManagers()', function() {
         let discoverSpy = sinon.spy();
-        
+
         it('should promise an array of tag managers', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();

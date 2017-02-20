@@ -17,15 +17,15 @@ describe('loading modules and instantiating objects:', function() {
     // platform module
     describe('#WirelessTagPlatform', function() {
         it('should load module', function() {
-            expect(() => { WirelessTagPlatform = require('../'); }).
+            expect(() => { WirelessTagPlatform = require('../') }).
                 to.not.throw();
         });
         it('should instantiate object with new', function() {
-            expect(() => { platform = new WirelessTagPlatform(); }).
+            expect(() => { platform = new WirelessTagPlatform() }).
                 to.not.throw();
         });
         it('can also create() object', function() {
-            expect(() => { platform = WirelessTagPlatform.create(); }).
+            expect(() => { platform = WirelessTagPlatform.create() }).
                 to.not.throw();
             expect(platform).to.be.instanceOf(WirelessTagPlatform);
         });
@@ -34,11 +34,11 @@ describe('loading modules and instantiating objects:', function() {
     // tag manager module
     describe('#WirelessTagManager', function() {
         it('should load module ', function() {
-            expect(() => { WirelessTagManager = require('../lib/tagmanager'); }).
+            expect(() => { WirelessTagManager = require('../lib/tagmanager') }).
                 to.not.throw();
         });
         it('should instantiate object with new', function() {
-            expect(() => { manager = new WirelessTagManager(platform); }).
+            expect(() => { manager = new WirelessTagManager(platform) }).
                 to.not.throw();
         });
     });
@@ -46,11 +46,11 @@ describe('loading modules and instantiating objects:', function() {
     // tag module
     describe('#WirelessTag', function() {
         it('should load module ', function() {
-            expect(() => { WirelessTag = require('../lib/tag'); }).
+            expect(() => { WirelessTag = require('../lib/tag') }).
                 to.not.throw();
         });
         it('should instantiate object with new', function() {
-            expect(() => { tag = new WirelessTag(manager); }).
+            expect(() => { tag = new WirelessTag(manager) }).
                 to.not.throw();
         });
     });
@@ -58,11 +58,11 @@ describe('loading modules and instantiating objects:', function() {
     // sensor module
     describe('#WirelessTagSensor', function() {
         it('should load module ', function() {
-            expect(() => { WirelessTagSensor = require('../lib/sensor'); }).
+            expect(() => { WirelessTagSensor = require('../lib/sensor') }).
                 to.not.throw();
         });
         it('should instantiate object with new', function() {
-            expect(() => { let sensor = new WirelessTagSensor(tag, 'temp'); }).
+            expect(() => new WirelessTagSensor(tag, 'temp')).
                 to.not.throw();
         });
     });

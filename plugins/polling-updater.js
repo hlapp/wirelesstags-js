@@ -1,5 +1,7 @@
 "use strict";
 
+/* eslint-disable no-console */
+
 /**
  * Uses a SOAP endpoint in the cloud API to continuously poll for
  * available updates.
@@ -228,7 +230,7 @@ PollingTagUpdater.prototype.startUpdateLoop = function(waitTime, callback) {
             tagDataList.forEach((tagData) => {
                 let tagObjs = this.tagsByUUID[tagData.uuid] || EMPTY;
                 if (tagObjs.size > 0) {
-                    tagObjs.forEach( (tag) => updateTag(tag, tagData) );
+                    tagObjs.forEach((tag) => updateTag(tag, tagData));
                 } else if (this.discoveryMode) {
                     newTagProms.push(createTag(tagData,
                                                this.platform, this.factory));
@@ -236,7 +238,7 @@ PollingTagUpdater.prototype.startUpdateLoop = function(waitTime, callback) {
             });
             return Promise.all(newTagProms);
         }).then((newTagList) => {
-            newTagList.forEach( (tag) => this.emit('data', tag) );
+            newTagList.forEach((tag) => this.emit('data', tag));
             // reset wait time upon success
             waitTime = undefined;
         }).catch((err) => {
@@ -303,7 +305,7 @@ PollingTagUpdater.prototype.uniqueTagManagers = function() {
     return Array.from(mgrByMAC.values());
 };
 
-const managerProps = ['managerName','mac','dbid','mirrors'];
+const managerProps = ['managerName', 'mac', 'dbid', 'mirrors'];
 
 /**
  * Updates the tag corresponding to the given tag data. Does nothing
@@ -326,7 +328,7 @@ function updateTag(tag, tagData) {
     }
     // we don't currently have anything more to do for the extra properties
     // identifying the tag manager, so simply get rid of them
-    managerProps.forEach( (k) => { delete tagData[k] } );
+    managerProps.forEach((k) => { delete tagData[k] });
     // almost done
     tag.data = tagData;
 }
@@ -347,7 +349,7 @@ function updateTag(tag, tagData) {
 function createTag(tagData, platform, factory) {
     let mgrData = {};
     managerProps.forEach((k) => {
-        let mk = k.replace(/^manager([A-Z])/,'$1');
+        let mk = k.replace(/^manager([A-Z])/, '$1');
         if (mk !== k) mk = mk.toLowerCase();
         mgrData[mk] = tagData[k];
         delete tagData[k];
@@ -389,7 +391,7 @@ function createSoapClient(opts) {
             if (err) return reject(err);
             resolve(client);
         });
-    }); 
+    });
 }
 
 /**
@@ -419,17 +421,21 @@ function pollForNextUpdate(client, tagManager, callback) {
             let tagDataList = JSON.parse(result[methodName + "Result"]);
             try {
                 if (callback) callback(null, { object: tagManager,
-                                               value: tagDataList});
-            }
-            catch(err) {
+                                               value: tagDataList });
+            } catch (e) {
                 console.error("error in callback:");
-                console.error(err.stack ? err.stack : err);
+                console.error(e.stack ? e.stack : e);
                 // no good reason to escalate an error thrown by callback
             }
             resolve(tagDataList);
         });
     });
-    if (callback) req = req.catch((err) => { callback(err); throw err; });
+    if (callback) {
+        req = req.catch((err) => {
+            callback(err);
+            throw err;
+        });
+    }
     return req;
 }
 

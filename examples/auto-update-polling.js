@@ -1,7 +1,7 @@
 'use strict';
 
-var Platform = require('wirelesstags'),
-    platform = Platform.create();
+var Platform = require('wirelesstags');
+var platform = Platform.create();
 
 var TagUpdater = require('wirelesstags/plugins/polling-updater');
 
@@ -24,11 +24,13 @@ platform.on('discover', function (manager) {
         tag.on('discover', function (sensor) {
             logSensor(sensor);
         });
-        tag.on('data', function (tag) {
-            logTag(tag);tag.eachSensor(logSensor);
+        tag.on('data', function (tagObj) {
+            logTag(tagObj);
+            tagObj.eachSensor(logSensor);
         });
         tag.discoverSensors().catch(function (e) {
-            console.error(e.stack ? e.stack : e);throw e;
+            console.error(e.stack ? e.stack : e);
+            throw e;
         });
     });
 

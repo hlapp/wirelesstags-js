@@ -1,7 +1,7 @@
 'use strict';
 
-var Platform = require('wirelesstags'),
-    platform = Platform.create();
+var Platform = require('wirelesstags');
+var platform = Platform.create();
 
 var END_AFTER = 30 * 60 * 1000; // value is in milliseconds
 
@@ -22,8 +22,9 @@ platform.on('discover', function (manager) {
             logSensor(sensor);
         });
 
-        tag.on('data', function (tag) {
-            logTag(tag);tag.eachSensor(logSensor);
+        tag.on('data', function (tagObj) {
+            logTag(tagObj);
+            tagObj.eachSensor(logSensor);
         });
 
         tag.discoverSensors().then(function (sensors) {
@@ -31,7 +32,8 @@ platform.on('discover', function (manager) {
             setTimeout(tag.stopUpdateLoop.bind(tag), END_AFTER);
             return sensors; // only needed if we kept chaining
         }).catch(function (e) {
-            console.error(e.stack ? e.stack : e);throw e;
+            console.error(e.stack ? e.stack : e);
+            throw e;
         });
     }); // end of manager.on()
 

@@ -26,8 +26,8 @@ except that there is no need to first find tag manager and tag objects.
 
 ### Create platform object
 
-    var Platform = require('wirelesstags'),
-        platform = Platform.create();
+    var Platform = require('wirelesstags');
+    var platform = Platform.create();
 
 ### Create tag updater
 
@@ -64,7 +64,7 @@ anything about the event handler.
             updater.addTags(tag);
         }
         // tag.discoverSensors() always promises _all_ of the tag's sensors,
-        // so is robust to whether they were already discovered previously 
+        // so is robust to whether they were already discovered previously
         tag.discoverSensors().then((sensors) => {
             logTag(tag);
             sensors.forEach(logSensor);

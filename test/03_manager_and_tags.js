@@ -10,14 +10,12 @@ var tags = [];
 
 describe('WirelessTagManager:', function() {
 
-    var WirelessTagManager,
-        WirelessTagPlatform,
+    var WirelessTagPlatform,
         WirelessTag,
         platform;
 
     before('load and connect to platform, find tag manager(s)', function(done) {
         WirelessTagPlatform = require('../');
-        WirelessTagManager = require('../lib/tagmanager');
         WirelessTag = require('../lib/tag');
 
         // create platform object, register listeners
@@ -33,8 +31,11 @@ describe('WirelessTagManager:', function() {
         if ((connOpts.username && connOpts.password) || connOpts.bearer) {
             credentialsMissing = false;
             platform.connect(connOpts).then(
-                (pf) => { pf.discoverTagManagers(); }
-            ).catch((e) => { console.error(e.stack ? e.stack : e); throw e; });
+                (pf) => pf.discoverTagManagers()
+            ).catch((e) => {
+                console.error(e.stack ? e.stack : e);
+                throw e;
+            });
         } else {
             // signal we're done - without connecting there's no discovering
             done();
@@ -47,13 +48,13 @@ describe('WirelessTagManager:', function() {
             if (credentialsMissing) return this.skip();
 
             expect(tagManager.mac).to.be.a('string').
-                and.to.have.length.within(10,14);     // 12 in theory?
+                and.to.have.length.within(10, 14);     // 12 in theory?
         });
         it('should be read-only', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
 
-            return expect(() => { tagManager.mac = "JX"; }).to.throw(TypeError);
+            return expect(() => { tagManager.mac = "JX" }).to.throw(TypeError);
         });
     });
     describe('#name', function() {
@@ -76,7 +77,7 @@ describe('WirelessTagManager:', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
 
-            return expect(() => { tagManager.online = false; }).to.throw(TypeError);
+            return expect(() => { tagManager.online = false }).to.throw(TypeError);
         });
     });
     describe('#selected', function() {
@@ -90,7 +91,7 @@ describe('WirelessTagManager:', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
 
-            return expect(() => { tagManager.selected = false; }).to.throw(TypeError);
+            return expect(() => { tagManager.selected = false }).to.throw(TypeError);
         });
     });
     describe('#wirelessConfig', function() {
@@ -126,13 +127,13 @@ describe('WirelessTagManager:', function() {
             if (credentialsMissing) return this.skip();
 
             // normally these are around 150
-            expect(Number(tagManager.radioId)).to.be.within(100,200);
+            expect(Number(tagManager.radioId)).to.be.within(100, 200);
         });
         it('should be read-only', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
 
-            return expect(() => { tagManager.radioId = 0; }).to.throw(TypeError);
+            return expect(() => { tagManager.radioId = 0 }).to.throw(TypeError);
         });
     });
     describe('#rev', function() {
@@ -147,7 +148,7 @@ describe('WirelessTagManager:', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
 
-            return expect(() => { tagManager.rev = 0; }).to.throw(TypeError);
+            return expect(() => { tagManager.rev = 0 }).to.throw(TypeError);
         });
     });
     describe('#dbid', function() {
@@ -162,7 +163,7 @@ describe('WirelessTagManager:', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
 
-            return expect(() => { tagManager.dbid = 0; }).to.throw(TypeError);
+            return expect(() => { tagManager.dbid = 0 }).to.throw(TypeError);
         });
     });
 
@@ -171,21 +172,21 @@ describe('WirelessTagManager:', function() {
            function() {
                // skip this if we don't have connection information
                if (credentialsMissing) return this.skip();
-               
+
                return expect(tagManager.select()).
                    to.eventually.equal(tagManager);
            });
         it('property "selected" should be true afterwards', function() {
                // skip this if we don't have connection information
                if (credentialsMissing) return this.skip();
-               
+
                return expect(tagManager.selected).to.be.true;
         });
     });
 
     describe('#discoverTags()', function() {
         let discoverSpy = sinon.spy();
-        
+
         it('should promise an array of tags associated with it', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
@@ -195,10 +196,10 @@ describe('WirelessTagManager:', function() {
                 tags.push(tag);
             });
             return expect(tagManager.discoverTags()).
-                to.eventually.satisfy((tags) => {
-                    return tags.reduce((state, tag) => {
+                to.eventually.satisfy((tagList) => {
+                    return tagList.reduce((state, tag) => {
                         return state && (tag instanceof WirelessTag);
-                    }, tags.length > 0);
+                    }, tagList.length > 0);
                 });
         });
         it('should emit "discover" event for each associated tag', function() {
@@ -246,7 +247,7 @@ describe('WirelessTag:', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
 
-            return expect(() => { tags[0].uuid = "xzy"; }).to.throw(TypeError);
+            return expect(() => { tags[0].uuid = "xzy" }).to.throw(TypeError);
         });
     });
 
@@ -275,7 +276,7 @@ describe('WirelessTag:', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
 
-            return expect(() => { tags[0].slaveId = -1; }).to.throw(TypeError);
+            return expect(() => { tags[0].slaveId = -1 }).to.throw(TypeError);
         });
     });
 
@@ -292,7 +293,7 @@ describe('WirelessTag:', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
 
-            return expect(() => { tags[0].alive = false; }).to.throw(TypeError);
+            return expect(() => { tags[0].alive = false }).to.throw(TypeError);
         });
     });
 
@@ -309,7 +310,7 @@ describe('WirelessTag:', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
 
-            return expect(() => { tags[0].tagType = 0; }).to.throw(TypeError);
+            return expect(() => { tags[0].tagType = 0 }).to.throw(TypeError);
         });
     });
 
@@ -326,7 +327,7 @@ describe('WirelessTag:', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
 
-            return expect(() => { tags[0].rev = 0; }).to.throw(TypeError);
+            return expect(() => { tags[0].rev = 0 }).to.throw(TypeError);
         });
     });
 
@@ -412,7 +413,7 @@ describe('WirelessTag:', function() {
             function tolerance(interval) {
                 const minTol = 30000;                // at least 30sec
                 let tol = interval * 1000 * 0.20;    // or 20% of interval
-                return  (tol > minTol) ? tol : minTol; 
+                return (tol > minTol) ? tol : minTol;
             }
 
             tags.forEach((tag) => {
@@ -625,7 +626,10 @@ describe('WirelessTagSensor:', function() {
                     }
                 });
                 done();
-            }).catch((e) => { console.error(e.stack ? e.stack : e); done(); });
+            }).catch((e) => {
+                console.error(e.stack ? e.stack : e);
+                done();
+            });
 
     });
 
@@ -1212,7 +1216,7 @@ describe('WirelessTagSensor:', function() {
            });
 
            after('ensure monitoringConfig isn\'t dirty', function() {
-               sensors.forEach( (sensor) => sensor.monitoringConfig().resetModified() );
+               sensors.forEach((sensor) => sensor.monitoringConfig().resetModified());
            });
     });
 

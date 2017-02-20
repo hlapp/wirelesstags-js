@@ -1,12 +1,13 @@
-/*
- * See README.md
- */
 "use strict";
+
+/* eslint-disable no-process-env, no-sync */
 
 /**
  * The cloud platform interface to the Wireless Tag platform. This
  * module exports the constructor for the {@link WirelessTagPlatform}
  * class.
+ *
+ * See README for further documentation.
  *
  * @module wirelesstags
  */
@@ -17,7 +18,7 @@ const os = require('os');
 const fs = require('fs');
 
 /**
- * @const {string} - The name of the default configuration file in the 
+ * @const {string} - The name of the default configuration file in the
  *                   executing user's home directory.
  *                   Used by {@link WirelessTagPlatform.loadConfig}.
  * @default
@@ -64,8 +65,7 @@ WirelessTagPlatform.loadConfig = function() {
     try {
         let confContent = fs.readFileSync(confPath, 'utf8');
         config = JSON.parse(confContent);
-    }
-    catch (err) {
+    } catch (err) {
         if (err.code !== "ENOENT") throw err;
     }
     if (process.env[ENV_USERNAME]) {

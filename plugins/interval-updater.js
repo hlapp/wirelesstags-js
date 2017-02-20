@@ -1,6 +1,6 @@
 "use strict";
 
-/** 
+/**
  * This is a TagUpdater plugin implementation that simply uses the {@link
  * WirelessTag#startUpdateLoop} and {@link WirelessTag#stopUpdateLoop}
  * methods, which auto-update a tag based on the update interval
@@ -90,7 +90,7 @@ TimedTagUpdater.prototype.startUpdateLoop = function() {
     if (this._running) return this;
     this._running = true;
     Object.keys(this.tagsByUUID).forEach((uuid) => {
-        this.tagsByUUID[uuid].forEach((tag) => { tag.startUpdateLoop(); });
+        this.tagsByUUID[uuid].forEach((tag) => tag.startUpdateLoop());
     });
     return this;
 };
@@ -103,7 +103,7 @@ TimedTagUpdater.prototype.stopUpdateLoop = function() {
     if (this._running) {
         this._running = false;
         for (let uuid in this.tagsByUUID) {
-            this.tagsByUUID[uuid].forEach((tag) => { tag.stopUpdateLoop(); });
+            this.tagsByUUID[uuid].forEach((tag) => tag.stopUpdateLoop());
         }
     }
     return this;

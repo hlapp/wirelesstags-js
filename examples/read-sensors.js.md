@@ -24,8 +24,8 @@ The code in this tutorial is also available as a JavaScript file
 
 ### Create platform object
 
-    var Platform = require('wirelesstags'),
-        platform = Platform.create();
+    var Platform = require('wirelesstags');
+    var platform = Platform.create();
 
 How long to keep looping?
 
@@ -70,7 +70,10 @@ Each tag will also fire `discover` events, for each sensor they have.
 Tags also fire a `data` event each time their data is updated (which
 includes data for their sensors).
 
-             tag.on('data', (tag) => { logTag(tag); tag.eachSensor(logSensor); });
+             tag.on('data', (tagObj) => {
+                logTag(tagObj);
+                tagObj.eachSensor(logSensor);
+             });
 
 Once event handlers for the tag are installed, ask the tag to find its
 sensors. When that completes successfully, start the update loop for
@@ -81,9 +84,10 @@ preconfigured time.
                  tag.startUpdateLoop();
                  setTimeout(tag.stopUpdateLoop.bind(tag), END_AFTER);
                  return sensors;  // only needed if we kept chaining
-
-             }).
-             catch((e) => { console.error(e.stack ? e.stack : e); throw e; });
+             }).catch((e) => {
+                console.error(e.stack ? e.stack : e);
+                throw e;
+             });
 
 Now ask the tag manager to find associated tags, which will trigger
 the `discover` events for tags.

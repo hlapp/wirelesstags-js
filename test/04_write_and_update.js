@@ -38,7 +38,10 @@ describe('Updating Tags:', function() {
                 tags.forEach((t) => {
                     if (t.lastUpdated() < focusTag.lastUpdated()) focusTag = t;
                 });
-            }).catch((e) => { console.error(e.stack ? e.stack : e); throw e; });
+            }).catch((e) => {
+                console.error(e.stack ? e.stack : e);
+                throw e;
+            });
         }
     });
 
@@ -127,7 +130,7 @@ describe('Updating Tags:', function() {
 
             return expect(dataSpy).to.have.not.been.called;
         });
-        it("should promise tag with changed \'updateInterval\'",
+        it("should promise tag with changed 'updateInterval'",
            function() {
                // skip this if we don't have connection information
                if (credentialsMissing) return this.skip();
@@ -225,8 +228,7 @@ describe('Updating Tags:', function() {
                    t.removeListener('data', dataSpy);
                    try {
                        expect(dataSpy).to.have.callCount(0);
-                   }
-                   finally {
+                   } finally {
                        done();
                    }
                };
@@ -267,7 +269,7 @@ describe('Updating sensors:', function() {
         tagManager.wirelessTagPlatform.retryOnError(true);
 
         // find all the sensors of each tag
-        let discoverReqs = tags.reduce((proms, tag) => {            
+        let discoverReqs = tags.reduce((proms, tag) => {
             let sensorList = tag.eachSensor();
             if (sensorList.length > 0) {
                 proms.push(Promise.resolve(sensorList));
@@ -276,7 +278,7 @@ describe('Updating sensors:', function() {
             }
             return proms;
         }, []);
-        
+
         // reduce the sensors list to one that contains each sensor type
         // only once, and that distributes these sensors across tags
         return Promise.all(discoverReqs).then(
@@ -471,7 +473,7 @@ describe('Updating sensors:', function() {
                 }, true);
             });
         });
-        
+
         it('should promise sensors that can arm changed to armed', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();

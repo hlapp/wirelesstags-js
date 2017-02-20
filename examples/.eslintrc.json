@@ -1,0 +1,6 @@
+{
+    "rules": {
+        "eol-last": "off",
+         "no-console": "off"
+   }
+}

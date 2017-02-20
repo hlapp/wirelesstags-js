@@ -1,0 +1,17 @@
+{
+    "env": {
+        "mocha": true
+    },
+    "rules": {
+        "arrow-body-style": "off",
+        "comma-spacing": "off",
+        "global-require": "off",
+        "no-console": "off",
+        "no-invalid-this": "off",
+        "spaced-comment": "off"
+    },
+    "globals": {
+        "expect": true,
+        "sinon": true
+    }
+}

@@ -449,7 +449,8 @@ describe('WirelessTag:', function() {
                 return (tol > minTol) ? tol : minTol;
             }
 
-            tags.forEach((tag) => {
+            let tagsToTest = tags.filter((t) => t.isPhysicalTag());
+            tagsToTest.forEach((tag) => {
                 expect(tag.lastUpdated().getTime()).
                     to.be.at.least(Date.now()
                                    - tag.updateInterval * 1000
@@ -895,7 +896,8 @@ describe('WirelessTagSensor:', function() {
 
                let toTest = sensors.filter((s) => {
                    return ['humidity','event','moisture','motion'].
-                       indexOf(s.sensorType) >= 0;
+                       indexOf(s.sensorType) >= 0
+                       && s.wirelessTag.isPhysicalTag();
                });
                // skip if there is nothing to test
                if (toTest.length === 0) this.skip();
@@ -1152,13 +1154,13 @@ describe('WirelessTagSensor:', function() {
                    let ths = mconf.thresholds;
                    let oldThs = thresholds.shift();
                    expect(sensor.reading).
-                       to.be.closeTo(degCtoF(readings.shift()), 0.1);
+                       to.be.closeTo(degCtoF(readings.shift()), 0.101);
                    expect(ths.lowValue).
-                       to.be.closeTo(degCtoF(oldThs.lowValue), 0.1);
+                       to.be.closeTo(degCtoF(oldThs.lowValue), 0.101);
                    expect(ths.highValue).
-                       to.be.closeTo(degCtoF(oldThs.highValue), 0.1);
+                       to.be.closeTo(degCtoF(oldThs.highValue), 0.101);
                    expect(ths.hysteresis).
-                       to.be.closeTo(degCtoF(oldThs.hysteresis, true), 0.1);
+                       to.be.closeTo(degCtoF(oldThs.hysteresis, true), 0.101);
                    mconf.unit = origUnits.shift();
                });
            });

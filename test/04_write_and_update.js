@@ -33,9 +33,10 @@ describe('Updating Tags:', function() {
                 return tagManager.discoverTags();
             }).then((tagsFound) => {
                 tags = tagsFound;
-                // find the most out of date tag
-                focusTag = tags[0];
-                tags.forEach((t) => {
+                // find the most out of date tag that is also a physical tag
+                tagsFound = tagsFound.filter((t) => t.isPhysicalTag());
+                focusTag = tagsFound[0];
+                tagsFound.forEach((t) => {
                     if (t.lastUpdated() < focusTag.lastUpdated()) focusTag = t;
                 });
             }).catch((e) => {

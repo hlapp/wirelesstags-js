@@ -296,6 +296,38 @@ describe('WirelessTag:', function() {
         });
     });
 
+    describe('#comment', function() {
+        let eventSpy = sinon.spy();
+
+        it('a string, its optional (and user-assigned) comment', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            tags.map((tag) => { return tag.comment }).forEach((value) => {
+                return expect(value || '').to.be.a('string');
+            });
+        });
+        it('should be modifiable', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            tags[0].on('update', eventSpy);
+            return expect(() => {
+                let val = tags[0].comment;
+                tags[0].comment = "xzy";
+                // restore original value
+                tags[0].comment = val;
+            }).to.not.throw(TypeError);
+        });
+        it('should trigger \'update\' event upon modification', function() {
+            tags[0].removeListener('update', eventSpy);
+            return expect(eventSpy).to.have.been.called.twice;
+        });
+        it('\'update\' event should fire with the correct arguments', function() {
+            expect(eventSpy).to.have.been.calledWith(tags[0], 'comment', 'xzy');
+        });
+    });
+
     describe('#slaveId', function() {
         it("a number, its unique 8-bit number among the tag manager's tags",
            function() {

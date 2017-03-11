@@ -226,6 +226,28 @@ describe('WirelessTagPlatform:', function() {
         });
     });
 
+    describe('#eachTagManager()', function() {
+
+        it('with no argument, should return an array of tag managers', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            let mgrs = platform.eachTagManager();
+            expect(mgrs).to.be.an('array');
+            expect(mgrs).to.have.length.above(0);
+            mgrs.forEach((m) => expect(m).to.be.an.instanceOf(WirelessTagManager));
+        });
+        it('with fn argument, should return an array of results from fn', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            let retVals = platform.eachTagManager((m) => m.mac);
+            expect(retVals).to.be.an('array');
+            expect(retVals).to.have.length.above(0);
+            retVals.forEach((v) => expect(v).to.be.a('string'));
+        });
+    });
+
     describe('#discoverTags()', function() {
         let discoverSpy = sinon.spy();
         let mgrDiscoverHandler = (mgr) => { mgr.on('discover', discoverSpy) };

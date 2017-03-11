@@ -7,7 +7,7 @@
 # wirelesstags - JavaScript API for the Wireless Sensor Tags platform
 
 Aims to provide a well-structured API to the [Wireless Sensor Tag]
-platform by interfacing with its [JSON Web Servive API]. It is
+platform by interfacing with its [JSON Web Service API]. It is
 primarily intended, designed, and tested for server-side use through
 NodeJS. (However, making it usable within a browser is a future goal,
 and corresponding contributions are welcome too.)
@@ -243,6 +243,59 @@ platform.discoverTags().then((tags) => {
 });
 ```
 
+#### Finding a specific tag
+
+Each tag is uniquely identified by a UUID (available as `tag.uuid`). This
+could be used to pass a query to `platform.discoverTags()`:
+
+```js
+var uuidOfTag = 'DESIRED UUID VALUE';
+platform.discoverTags({ uuid: uuidOfTag }).then((tags) => {
+    if (tags.length === 0) throw new Error("tag not found");
+    return tags[0].discoverSensors();
+}).then((sensorList) => {
+    var tag = sensorList[0].wirelessTag;
+    console.log("Sensors of tag", tag.name, tag.uuid);
+    sensorList.forEach((sensor) => {
+        console.log("..", sensor.sensorType, "sensor");
+        console.log("    reading:", sensor.reading);
+        console.log("    state:", sensor.eventState);
+        console.log("    armed:", sensor.isArmed());
+    });
+});
+```
+
+It should be noted that this has no performance advantage over filtering the
+list of tag objects from `platform.discoverTags()`, because the
+[JSON Web Service API] has no server-side support for querying by UUID.
+
+Another way to uniquely (at a moment in time) specify a tag is by tag manager
+(as identified by its MAC) and the tag's `slaveId` (a consecutive numbering
+for the tags associated with a tag manager):
+
+```js
+var MAC = 'MAC OF TAG MANAGER';
+var slaveId = 'SLAVEID OF DESIRED TAG';
+platform.findTagManager(MAC).then((tagMgr) => {
+    if (! tagMgr) throw new Error("tag manager not found");
+    return tagMgr.findTagById(slaveId); // rejects if not found
+}).then((tag) => tag.discoverSensors()).then((sensorList) => {
+    var tag = sensorList[0].wirelessTag;
+    console.log("Sensors of tag", tag.name, tag.uuid);
+    sensorList.forEach((sensor) => {
+        console.log("..", sensor.sensorType, "sensor");
+        console.log("    reading:", sensor.reading);
+        console.log("    state:", sensor.eventState);
+        console.log("    armed:", sensor.isArmed());
+    });
+}).catch((err) => console.error(err.stack ? err.stack : err));
+```
+
+For an account with access to many tags this may perform noticeably better
+than filtering by UUID, because once the tag manager is found (and the number
+of tag managers is likely at least an order of magnitude smaller than the
+number of tags), obtaining the tag's data by `slaveId` is supported server-side.
+
 #### Accessing sensors through tag object
 
 Once the promise returned from `tag.discoverSensors()` is fulfilled,
@@ -312,8 +365,8 @@ This library should be considered beta. Full API documentation is
 only starting to come into place, and remains lacking for most of its
 functionality:
 
-* [Online API documentation](http://lappland.io/wirelesstags-js/wirelesstags/0.6.0)
-* See the [`examples/`](https://github.com/hlapp/wirelesstags-js/tree/release-v0.6.0/examples)
+* [Online API documentation](http://lappland.io/wirelesstags-js/wirelesstags/0.6.2)
+* See the [`examples/`](https://github.com/hlapp/wirelesstags-js/tree/release-v0.6.2/examples)
   directory for tutorial scripts that give basic, but fully working
   demonstrations of how the library can be used.
 
@@ -334,6 +387,6 @@ tags in the future and support those too.
 Available under the [MIT License](LICENSE).
 
 [Wireless Sensor Tag]: http://wirelesstag.net
-[JSON Web Servive API]: http://mytaglist.com/media/mytaglist.com/apidoc.html
+[JSON Web Service API]: http://mytaglist.com/media/mytaglist.com/apidoc.html
 [Tag Manager]: http://wirelesstag.net/specs.html#manager
 [Wireless Tag]: http://wirelesstag.net/specs.html#tag

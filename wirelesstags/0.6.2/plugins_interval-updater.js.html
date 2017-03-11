@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: plugins/interval-updater.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: plugins/interval-updater.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>"use strict";
+
+/**
+ * This is a TagUpdater plugin implementation that simply uses the {@link
+ * WirelessTag#startUpdateLoop} and {@link WirelessTag#stopUpdateLoop}
+ * methods, which auto-update a tag based on the update interval
+ * configured for it.
+ *
+ * The main motivation is to have a module for using an interval-based
+ * update method that uses the same API interface as others, and can
+ * thus be swapped in.
+ *
+ * @module
+ */
+
+/**
+ * Creates the updater instance.
+ *
+ * @constructor
+ */
+function TimedTagUpdater() {
+    this.tagsByUUID = {};
+}
+
+/**
+ * Adds the given tags to the ones to be updated by this updater. If
+ * the update loop is already running (because
+ * [startUpdateLoop()]{@link module:plugins/interval-updater~TimedTagUpdater#startUpdateLoop}
+ * was called), the tag will start auto-updating.
+ *
+ * Adding the same (determined by identity) object again has no
+ * effect. However, an object that represents the same tag as one
+ * already added (i.e., has the same `uuid` property value) will be
+ * registered for updates, too.
+ *
+ * @param {(WirelessTag|WirelessTag[])} tags - the tags (or the tag) to
+ *                                           be updated
+ *
+ * @return {module:plugins/interval-updater~TimedTagUpdater}
+ */
+TimedTagUpdater.prototype.addTags = function(tags) {
+    if (!Array.isArray(tags)) tags = [tags];
+    for (let tag of tags) {
+        if (this._running) tag.startUpdateLoop();
+        if (this.tagsByUUID[tag.uuid]) {
+            this.tagsByUUID[tag.uuid].add(tag);
+        } else {
+            this.tagsByUUID[tag.uuid] = new Set([tag]);
+        }
+    }
+    return this;
+};
+
+/**
+ * Removes the given tag object(s) from the ones to be updated by this
+ * updater. If the update loop is already running (because
+ * [startUpdateLoop()]{@link module:plugins/interval-updater~TimedTagUpdater#startUpdateLoop}
+ * was called) and a tag object was previously registered, it will
+ * stop auto-updating.
+ *
+ * Note that only the given object(s) will be removed. Specifically,
+ * other tag objects with the same `uuid` property value, if
+ * previously added, remain registered.
+ *
+ * @param {(WirelessTag|WirelessTag[])} tags - the tag object(s) to
+ *                                           be removed from updating
+ *
+ * @return {module:plugins/interval-updater~TimedTagUpdater}
+ */
+TimedTagUpdater.prototype.removeTags = function(tags) {
+    if (tags &amp;&amp; !Array.isArray(tags)) tags = [tags];
+    for (let tag of tags) {
+        let tagSet = this.tagsByUUID[tag.uuid];
+        if (tagSet) {
+            if (tagSet.has(tag) &amp;&amp; this._running) tag.stopUpdateLoop();
+            tagSet.delete(tag);
+        }
+    }
+    return this;
+};
+
+/**
+ * Starts the continuous update loop. Registered tags will get updated
+ * until they are removed, or [stopUpdateLoop()]{@link module:plugins/interval-updater~TimedTagUpdater#stopUpdateLoop}
+ * is called.
+ *
+ * Has no effect if a continuous update loop is already running.
+ */
+TimedTagUpdater.prototype.startUpdateLoop = function() {
+    if (this._running) return this;
+    this._running = true;
+    Object.keys(this.tagsByUUID).forEach((uuid) => {
+        this.tagsByUUID[uuid].forEach((tag) => tag.startUpdateLoop());
+    });
+    return this;
+};
+
+/**
+ * Stops the continuous update loop. Has no effect if an update loop
+ * is not currently active.
+ */
+TimedTagUpdater.prototype.stopUpdateLoop = function() {
+    if (this._running) {
+        this._running = false;
+        for (let uuid in this.tagsByUUID) {
+            this.tagsByUUID[uuid].forEach((tag) => tag.stopUpdateLoop());
+        }
+    }
+    return this;
+};
+
+module.exports = TimedTagUpdater;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_platform.html">lib/platform</a></li><li><a href="module-plugins_interval-updater.html">plugins/interval-updater</a></li><li><a href="module-plugins_polling-updater.html">plugins/polling-updater</a></li><li><a href="module-wirelesstags.html">wirelesstags</a></li></ul><h3>Classes</h3><ul><li><a href="module-plugins_interval-updater-TimedTagUpdater.html">TimedTagUpdater</a></li><li><a href="module-plugins_polling-updater-PollingTagUpdater.html">PollingTagUpdater</a></li><li><a href="MonitoringConfig.html">MonitoringConfig</a></li><li><a href="WirelessTag.html">WirelessTag</a></li><li><a href="WirelessTagManager.html">WirelessTagManager</a></li><li><a href="WirelessTagPlatform.html">WirelessTagPlatform</a></li><li><a href="WirelessTagSensor.html">WirelessTagSensor</a></li></ul><h3>Events</h3><ul><li><a href="WirelessTagManager.html#event:data">data</a></li><li><a href="WirelessTagManager.html#event:discover">discover</a></li><li><a href="WirelessTagPlatform.html#event:connect">connect</a></li><li><a href="WirelessTagPlatform.html#event:discover">discover</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-auto-discover.js.html">auto-discover.js</a></li><li><a href="tutorial-auto-update-polling.js.html">auto-update-polling.js</a></li><li><a href="tutorial-read-sensors.js.html">read-sensors.js</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a>
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

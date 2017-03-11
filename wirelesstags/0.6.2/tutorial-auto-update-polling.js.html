@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Tutorial: auto-update-polling.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Tutorial: auto-update-polling.js</h1>
+
+    <section>
+
+<header>
+    
+
+    <h2>auto-update-polling.js</h2>
+</header>
+
+<article>
+    <h2 id="using-polling-to-auto-update-sensor-data">Using polling to auto-update sensor data</h2>
+<p>Simple example script that demonstrates how to use the polling updater
+to update tag data automatically when there is an update. Unlike the
+auto-update loop based on the update interval configured for each tag
+(see <a href="tutorial-read-sensors.js.html">read-sensors.js</a>), this method should capture events
+triggered by armed sensors within a short amount of time.</p>
+<p>The code in this tutorial is also available as a JavaScript file
+(generated automatically from this tutorial) that can be run with
+<code>nodejs</code>. See the <a href="https://github.com/hlapp/wirelesstags-js/tree/master/examples"><code>examples/</code></a> directory of the package.</p>
+<h3 id="principle-flow">Principle flow</h3>
+<p>The principle flow is taken straight from <a href="tutorial-read-sensors.js.html">read-sensors.js</a>:</p>
+<ol>
+<li>Connect to cloud.</li>
+<li>Find <a href="WirelessTagManager.html"><code>tag managers</code></a>.</li>
+<li>For each tag manager, find its associated <a href="WirelessTag.html"><code>tags</code></a>.</li>
+<li>For each tag, find its <a href="WirelessTagSensor.html"><code>sensors</code></a>.</li>
+<li>Hand sensors over to the TagUpdater instance for auto-updating.</li>
+<li>When there is new data for a tag, do something useful with the
+data. Here we simply log useful properties for each sensor and tag
+(see <a href="tutorial-read-sensors.js.html">read-sensors.js</a>).</li>
+<li>Continue updating for a set period of time.</li>
+</ol>
+<h3 id="create-platform-object">Create platform object</h3>
+<pre class="prettyprint source"><code>var Platform = require('wirelesstags');
+var platform = Platform.create();</code></pre><h3 id="create-tag-updater">Create tag updater</h3>
+<p>Here we determine which tag updater we use. Here we want to use the
+one that uses polling.</p>
+<pre class="prettyprint source"><code>var TagUpdater = require('wirelesstags/plugins/polling-updater');</code></pre><h3 id="set-up-event-handlers">Set up event handlers</h3>
+<p>In this implementation here we use mostly event handlers to proceed
+once the initial <a href="WirelessTagPlatform.html#connect"><code>connect()</code></a>
+succeeds. One could equally well use <code>Promise</code>-chaining (via
+<code>.then()</code>). Note that if we do not use callbacks, it is a good idea to
+<code>.catch()</code> rejected promises, because otherwise errors thrown will be
+invisible.</p>
+<p>How long to keep looping?</p>
+<pre class="prettyprint source"><code>const END_AFTER = 30 * 60 * 1000; // value is in milliseconds</code></pre><p>In the <code>connect</code> event handler, trigger discovery of tag managers (see
+<a href="WirelessTagPlatform.html#discoverTagManagers"><code>discoverTagManagers()</code></a>):</p>
+<pre class="prettyprint source"><code>platform.on('connect', () => {
+    console.log(&quot;connected to Wireless Tag cloud&quot;);
+    platform.discoverTagManagers().catch(
+        (err) => { console.error(err.stack ? err.stack : err);
+    });
+});</code></pre><p>Create the updater instance:</p>
+<pre class="prettyprint source"><code>let updater = new TagUpdater();</code></pre><p>The <code>discover</code> handler for the platform will receive tag a manager
+object on each event.</p>
+<pre class="prettyprint source"><code>platform.on('discover', (manager) => {
+    console.log(&quot;found manager&quot;, manager.name, manager.mac);</code></pre><p>Next, we install an event handlers for the tag manager's <code>discover</code>
+event, which will be fired for each associated tag. For each
+discovered tag, install event handlers for <code>discover</code> (fired for each
+of their sensors) and <code>data</code> events (fired each time its data is
+updated). This is the same sequence as in <a href="tutorial-read-sensors.js.html">read-sensors.js</a>.
+Once event handlers for the tag are installed, ask the tag to find its
+sensors.</p>
+<pre class="prettyprint source"><code>    manager.on('discover', (tag) => {
+        logTag(tag);
+        tag.on('discover', (sensor) => { logSensor(sensor); });
+        tag.on('data', (tagObj) => {
+            logTag(tagObj);
+            tagObj.eachSensor(logSensor);
+        });
+        tag.discoverSensors().catch((e) => {
+            console.error(e.stack ? e.stack : e);
+            throw e;
+        });
+    });</code></pre><p>Now ask the tag manager to find associated tags (which will trigger
+the tag <code>discover</code> events and above handler). When done, register all
+tags with the update instance, and start polling for updates.</p>
+<pre class="prettyprint source"><code>    manager.discoverTags().
+        then((tags) => {
+            updater.addTags(tags);
+            updater.startUpdateLoop();
+            setTimeout(updater.stopUpdateLoop.bind(updater), END_AFTER);
+            return tags; // only needed if we kept chaining
+        }).
+        catch((e) => { console.error(e.stack ? e.stack : e) });
+}); // end of platform.on()</code></pre><h3 id="connect-to-platform">Connect to platform</h3>
+<p>Once the event handlers are set up, connect to the platform. This is
+the same as in <a href="tutorial-read-sensors.js.html">read-sensors.js</a>.</p>
+<pre class="prettyprint source"><code>platform.connect(Platform.loadConfig()).
+    catch((e) => { console.error(e.stack ? e.stack : e) });</code></pre><h3 id="do-something-with-tags-and-sensors">Do something with tags and sensors</h3>
+<p>The actions for tags and sensors here are simply copied from <a href="tutorial-read-sensors.js.html">read-sensors.js</a>.</p>
+<pre class="prettyprint source lang-js"><code>function logTag(tag) {
+    console.log(&quot;Tag&quot;, tag.name, &quot;(slaveId=&quot; + tag.slaveId + &quot;)&quot;);
+    // console.log(&quot;.. properties:&quot;, tag.toString());
+}
+
+function logSensor(sensor) {
+    console.log(&quot;..&quot;, sensor.sensorType,
+                &quot;of&quot;, sensor.wirelessTag.name + &quot;:&quot;);
+    console.log(&quot;    reading:&quot;, sensor.reading);
+    if (sensor.eventState !== undefined) {
+        console.log(&quot;    state:&quot;, sensor.eventState);
+        console.log(&quot;    armed:&quot;, sensor.isArmed());
+    }
+    // console.log(&quot;... sensor properties:&quot;, sensor.toString());
+}</code></pre>
+</article>
+
+</section>
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_platform.html">lib/platform</a></li><li><a href="module-plugins_interval-updater.html">plugins/interval-updater</a></li><li><a href="module-plugins_polling-updater.html">plugins/polling-updater</a></li><li><a href="module-wirelesstags.html">wirelesstags</a></li></ul><h3>Classes</h3><ul><li><a href="module-plugins_interval-updater-TimedTagUpdater.html">TimedTagUpdater</a></li><li><a href="module-plugins_polling-updater-PollingTagUpdater.html">PollingTagUpdater</a></li><li><a href="MonitoringConfig.html">MonitoringConfig</a></li><li><a href="WirelessTag.html">WirelessTag</a></li><li><a href="WirelessTagManager.html">WirelessTagManager</a></li><li><a href="WirelessTagPlatform.html">WirelessTagPlatform</a></li><li><a href="WirelessTagSensor.html">WirelessTagSensor</a></li></ul><h3>Events</h3><ul><li><a href="WirelessTagManager.html#event:data">data</a></li><li><a href="WirelessTagManager.html#event:discover">discover</a></li><li><a href="WirelessTagPlatform.html#event:connect">connect</a></li><li><a href="WirelessTagPlatform.html#event:discover">discover</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-auto-discover.js.html">auto-discover.js</a></li><li><a href="tutorial-auto-update-polling.js.html">auto-update-polling.js</a></li><li><a href="tutorial-read-sensors.js.html">read-sensors.js</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a>
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

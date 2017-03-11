@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Home</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Home</h1>
+
+    
+
+
+
+    
+
+
+    <h3>wirelesstags 0.6.2</h3>
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    <section>
+        <article><p><a href="https://travis-ci.org/hlapp/wirelesstags-js"><img src="https://travis-ci.org/hlapp/wirelesstags-js.svg?branch=master" alt="Build Status"></a>
+<a href="https://www.npmjs.com/package/wirelesstags"><img src="https://img.shields.io/npm/v/wirelesstags.svg" alt="npm"></a>
+<a href="https://www.npmjs.com/package/wirelesstags"><img src="https://img.shields.io/npm/dt/wirelesstags.svg" alt="npm"></a>
+<a href="https://david-dm.org/hlapp/wirelesstags-js"><img src="https://david-dm.org/hlapp/wirelesstags-js.svg" alt="david-dm"></a>
+<a href="https://david-dm.org/hlapp/wirelesstags-js?type=dev"><img src="https://david-dm.org/hlapp/wirelesstags-js/dev-status.svg" alt="david-dm"></a></p>
+<h1 id="wirelesstags-javascript-api-for-the-wireless-sensor-tags-platform">wirelesstags - JavaScript API for the Wireless Sensor Tags platform</h1>
+<p>Aims to provide a well-structured API to the <a href="http://wirelesstag.net">Wireless Sensor Tag</a>
+platform by interfacing with its <a href="http://mytaglist.com/media/mytaglist.com/apidoc.html">JSON Web Service API</a>. It is
+primarily intended, designed, and tested for server-side use through
+NodeJS. (However, making it usable within a browser is a future goal,
+and corresponding contributions are welcome too.)</p>
+<h2 id="installation-and-setup">Installation and setup</h2>
+<pre class="prettyprint source lang-sh"><code>$ npm install wirelesstags</code></pre><p>The library (specifically, the <code>platform.connect()</code> method, see
+below) will need authentication information. The library supports two
+default ways to pick up this information:</p>
+<ol>
+<li>A file <code>$HOME/.wirelesstags</code> in JSON format, with the necessary
+authentication information (currently keys <code>username</code> and
+<code>password</code>). This file should obviously be readable only by the
+user running the app.</li>
+<li>Environment variables <code>WIRELESSTAG_API_USER</code> and
+<code>WIRELESSTAG_API_PASSWORD</code>, if set, will override whatever is found
+in the default options file.</li>
+</ol>
+<p>It is strongly recommended to create a separate account as a &quot;limited
+user&quot; for using this library rather than your main account(s) at
+Wirelesstag.com. This makes it easy to change the password or delete
+the account altogether if the password happens to leak out, and allows
+controlling which tag managers and tags are visible to the
+account. Note also that wirelesstag.com stores your password in clear
+text (you can verify by recovering it), and hence never use a password
+there that you use anywhere else.</p>
+<h2 id="usage">Usage</h2>
+<h3 id="principle-objects">Principle objects</h3>
+<p>The principle object hierarchy is the following:</p>
+<ul>
+<li><p><code>WirelessTagPlatform</code>: Top-level object representing the cloud
+interface to the platform. Emits <code>discover</code> events for
+<code>WirelessTagManager</code> instances upon calling <code>platform.discoverTagManagers()</code>.</p>
+</li>
+<li><p><code>WirelessTagManager</code>: Object representing a <a href="http://wirelesstag.net/specs.html#manager">Tag Manager</a>.
+ Discovered through the platform object. Emits <code>discover</code> events for
+ Wireless Tags associated with the tag manager upon calling
+ <code>tagManager.discoverTags()</code>.</p>
+</li>
+<li><p><code>WirelessTag</code>: Object representing a <a href="http://wirelesstag.net/specs.html#tag">Wireless Tag</a>. Discovered
+through the tag manager object. Tags have sensor capabilities, which
+can be queried using <code>tag.hasHumiditySensor()</code> etc methods, or as an
+array of strings via <code>tag.sensorCapabilities()</code>. Sensor objects can
+be discovered by calling <code>tag.discoverSensors()</code>, which emits a
+<code>discover</code> event for each newly found sensor. They can be iterated
+over using <code>tag.eachSensor()</code>, which takes a callback.</p>
+</li>
+<li><p><code>WirelessTagSensor</code>: Object abstracting a sensor that is part of a
+Wireless Tag. Sensor objects are of a type (<code>sensor.sensorType</code>),
+and usually have a <code>reading</code> and an <code>eventState</code> property. They
+can be armed or disarmed (<code>sensor.arm()</code> and <code>sensor.disarm()</code>), and
+their monitoring and notification configuration is available as
+properties of the object returned by <code>sensor.monitoringConfig()</code>.</p>
+</li>
+</ul>
+<h3 id="initialize-platform-connect-to-cloud-and-discover-tag-managers">Initialize platform, connect to cloud, and discover tag managers</h3>
+<p>The platform object can be created using its constructor, or using the
+static method <code>WirelessTagPlatform.create()</code>.</p>
+<pre class="prettyprint source lang-javascript"><code>var WirelessTagPlatform = require('wirelesstags');
+
+// Passing a config object is optional. Default for apiBaseURI is
+// https://www.mytaglist.com
+var platform = new WirelessTagPlatform({ apiBaseURI: 'https://my.wirelesstag.com' });</code></pre><p>When using the static <code>create()</code> method, it will try to load
+configuration options from <code>~/.wirelesstags</code>, or from the environment:</p>
+<pre class="prettyprint source lang-javascript"><code>var WirelessTagPlatform = require('wirelesstags');
+
+var platform = WirelessTagPlatform.create();</code></pre><p>Platform instances emit a <code>connect</code> event after successful
+connections, and a <code>discover</code> event for each tag manager object. The
+<code>connect()</code> and <code>discoverTagManagers()</code> methods also return promises,
+the latter with an array of tag manager objects.</p>
+<p>Define or obtain connection options:</p>
+<pre class="prettyprint source lang-javascript"><code>var opts = { username: 'foo@bar.com', password: 'supersecret' };
+// or load from default configuration file or environment variables:
+opts = WirelessTagPlatform.loadConfig();</code></pre><h4 id="connect-and-discover-tag-managers-using-event-handlers">Connect and discover tag managers using event handlers</h4>
+<pre class="prettyprint source lang-javascript"><code>platform.on('connect', () => {
+    console.log(&quot;connected to Wireless Tag cloud&quot;);
+    platform.discoverTagManagers();
+});
+platform.on('discover', (tagManager) => {
+    console.log(&quot;found tag manager&quot;, tagManager.name, tagManager.mac);
+});
+// once the listeners are set up we can connect
+platform.connect(opts)</code></pre><p>A platform instance (since v0.6.0) caches tag manager objects
+resulting from a call to <code>discoverTagManagers()</code>. Subsequent calls
+will not update properties of these objects, but emit <code>discover</code>
+events only for newly found (not previously cached) tag managers. This
+allows an application to scan periodically for new tag managers,
+without receiving <code>discover</code> events redundantly for the same objects.</p>
+<h4 id="connect-and-discover-tag-managers-using-returned-promises">Connect and discover tag managers using returned promises</h4>
+<pre class="prettyprint source lang-javascript"><code>platform.connect(opts).then(() => {
+    return platform.discoverTagManagers();
+}).then((tagManagers) => {
+    tagManagers.forEach((tagManager) => {
+        console.log(&quot;found tag manager&quot;, tagManager.name, tagManager.mac);
+    });
+});</code></pre><p>The method always promises <em>all</em> tag manager objects found (hence the
+number of <code>discover</code> events fired will only on the first call be the
+same as the number of objects promised). Since v0.6.0, if called
+repeatedly the objects promised for tag managers discovered previously
+will be the same (but with updated properties), allowing an
+application to scan periodically for new tag managers without losing
+the application's state of prviously returnd objects.</p>
+<h3 id="discovering-tags-and-their-sensors">Discovering tags and their sensors</h3>
+<p>The tag manager object emits <code>discover</code> events for each tag associated
+with it after starting discovery by calling <code>tagManager.discoverTags()</code>.
+In the same way, tag objects emit <code>discover</code> events for each of their
+newly found sensors after initiating discovery with
+<code>tag.discoverSensors()</code>.</p>
+<p>The discovery methods also promise arrays of tags and sensors,
+respectively. Either approach (promises or events) can be used.</p>
+<p>The <code>tag.discoverSensors()</code> method always promises an array of <em>all</em>
+its sensors, whereas it emits <code>discover</code> events <em>only</em> for newly found
+sensors. Subsequent <code>tag.discoverSensors()</code> calls will promise the
+same sensor objects (unless there were new sensors, but the current
+generation of Wireless Tags cannot dynamically gain sensors).</p>
+<p>In contrast, <code>tagManager.discoverTags()</code> always emits the same number
+of events as there are elements in the promised array of tag objects,
+and the tag objects are always new objects, because tag manager
+objects don't cache their associated tag objects. Indeed in practice
+tags can be dynamically associated with or disassociated from tag
+managers.</p>
+<h4 id="discovering-tags-and-sensors-using-event-handlers">Discovering tags and sensors using event handlers</h4>
+<pre class="prettyprint source lang-javascript"><code>tagManager.on('discover', (tag) => {
+    console.log(&quot;Tag&quot;, tag.name, &quot;(slaveId=&quot; + tag.slaveId + &quot;)&quot;, tag.uuid);
+    console.log(&quot;.. last updated&quot;, tag.lastUpdated());
+    tag.on('discover', (sensor) => {
+        console.log(&quot;..&quot;, sensor.sensorType, &quot;of&quot;, sensor.wirelessTag.name);
+        console.log(&quot;    reading:&quot;, sensor.reading);
+        console.log(&quot;    state:&quot;, sensor.eventState);
+        console.log(&quot;    armed:&quot;, sensor.isArmed());
+    });
+    tag.discoverSensors();
+});
+tagManager.discoverTags();</code></pre><h4 id="discovering-tags-and-sensors-using-promises">Discovering tags and sensors using promises</h4>
+<pre class="prettyprint source lang-javascript"><code>tagManager.discoverTags().then((tags) => {
+    tags.forEach((tag) => {
+        console.log(&quot;Tag&quot;, tag.name, &quot;(slaveId=&quot; + tag.slaveId + &quot;)&quot;, tag.uuid);
+    });
+    return Promise.all(tags.map((tag) => { return tag.discoverSensors(); }));
+}).then((sensorLists) => {
+    sensorLists.forEach((sensors) => {
+        var tag = sensors[0].wirelessTag;
+        console.log(&quot;Sensors of tag&quot;, tag.name, tag.uuid);
+        sensors.forEach((sensor) => {
+            console.log(&quot;..&quot;, sensor.sensorType, &quot;sensor&quot;);
+            console.log(&quot;    reading:&quot;, sensor.reading);
+            console.log(&quot;    state:&quot;, sensor.eventState);
+            console.log(&quot;    armed:&quot;, sensor.isArmed());
+        });
+    });
+});</code></pre><h4 id="discovering-tags-and-sensors-directly-from-platform">Discovering tags and sensors directly from platform</h4>
+<p>Since v0.6.0, tag objects can be discovered directly in one go from
+the platform object, without first finding the tag manager objects.</p>
+<p>In terms of performance as determined by the sequence of cloud API
+calls, there is no difference to finding the tag managers first if
+only one tag manager is accessible to the connected account. However,
+in the case of multiple tag managers under the account, the difference
+can be notable (because currently the cloud API does not support
+filtering tags by tag manager at the server).</p>
+<pre class="prettyprint source lang-javascript"><code>platform.discoverTags().then((tags) => {
+    tags.forEach((tag) => {
+        console.log(&quot;Tag&quot;, tag.name, &quot;of&quot;, tag,wirelessTagManager.name,
+                    &quot;(slaveId=&quot; + tag.slaveId + &quot;)&quot;, tag.uuid);
+    });
+    // the following may need rate-limiting if there are many tags
+    // (e.g., see package p-limit for rate-limiting promises)
+    return Promise.all(tags.map((tag) => { return tag.discoverSensors(); }));
+}).then((sensorLists) => {
+    sensorLists.forEach((sensors) => {
+        var tag = sensors[0].wirelessTag;
+        console.log(&quot;Sensors of tag&quot;, tag.name, tag.uuid);
+        sensors.forEach((sensor) => {
+            console.log(&quot;..&quot;, sensor.sensorType, &quot;sensor&quot;);
+            console.log(&quot;    reading:&quot;, sensor.reading);
+            console.log(&quot;    state:&quot;, sensor.eventState);
+            console.log(&quot;    armed:&quot;, sensor.isArmed());
+        });
+    });
+});</code></pre><h4 id="finding-a-specific-tag">Finding a specific tag</h4>
+<p>Each tag is uniquely identified by a UUID (available as <code>tag.uuid</code>). This
+could be used to pass a query to <code>platform.discoverTags()</code>:</p>
+<pre class="prettyprint source lang-js"><code>var uuidOfTag = 'DESIRED UUID VALUE';
+platform.discoverTags({ uuid: uuidOfTag }).then((tags) => {
+    if (tags.length === 0) throw new Error(&quot;tag not found&quot;);
+    return tags[0].discoverSensors();
+}).then((sensorList) => {
+    var tag = sensorList[0].wirelessTag;
+    console.log(&quot;Sensors of tag&quot;, tag.name, tag.uuid);
+    sensorList.forEach((sensor) => {
+        console.log(&quot;..&quot;, sensor.sensorType, &quot;sensor&quot;);
+        console.log(&quot;    reading:&quot;, sensor.reading);
+        console.log(&quot;    state:&quot;, sensor.eventState);
+        console.log(&quot;    armed:&quot;, sensor.isArmed());
+    });
+});</code></pre><p>It should be noted that this has no performance advantage over filtering the
+list of tag objects from <code>platform.discoverTags()</code>, because the
+<a href="http://mytaglist.com/media/mytaglist.com/apidoc.html">JSON Web Service API</a> has no server-side support for querying by UUID.</p>
+<p>Another way to uniquely (at a moment in time) specify a tag is by tag manager
+(as identified by its MAC) and the tag's <code>slaveId</code> (a consecutive numbering
+for the tags associated with a tag manager):</p>
+<pre class="prettyprint source lang-js"><code>var MAC = 'MAC OF TAG MANAGER';
+var slaveId = 'SLAVEID OF DESIRED TAG';
+platform.findTagManager(MAC).then((tagMgr) => {
+    if (! tagMgr) throw new Error(&quot;tag manager not found&quot;);
+    return tagMgr.findTagById(slaveId); // rejects if not found
+}).then((tag) => tag.discoverSensors()).then((sensorList) => {
+    var tag = sensorList[0].wirelessTag;
+    console.log(&quot;Sensors of tag&quot;, tag.name, tag.uuid);
+    sensorList.forEach((sensor) => {
+        console.log(&quot;..&quot;, sensor.sensorType, &quot;sensor&quot;);
+        console.log(&quot;    reading:&quot;, sensor.reading);
+        console.log(&quot;    state:&quot;, sensor.eventState);
+        console.log(&quot;    armed:&quot;, sensor.isArmed());
+    });
+}).catch((err) => console.error(err.stack ? err.stack : err));</code></pre><p>For an account with access to many tags this may perform noticeably better
+than filtering by UUID, because once the tag manager is found (and the number
+of tag managers is likely at least an order of magnitude smaller than the
+number of tags), obtaining the tag's data by <code>slaveId</code> is supported server-side.</p>
+<h4 id="accessing-sensors-through-tag-object">Accessing sensors through tag object</h4>
+<p>Once the promise returned from <code>tag.discoverSensors()</code> is fulfilled,
+sensor objects can also be accessed through the methods of the tag
+object (because tag objects cache their sensors, and in practice
+sensors can't be associated with or disassociated from a tag
+dynamically). Either use <code>tag.eachSensor()</code> with a callback that
+accepts a sensor object, or use each sensor's individual accessor
+method, which are all named <code>zzzzSensor()</code>, where zzzz is the type of
+sensor, for example <code>tag.lightSensor()</code>. The method
+<code>tag.sensorCapabilities()</code> returns an array of strings denoting the
+possible zzzz values.</p>
+<h4 id="changing-the-temperature-unit">Changing the temperature unit</h4>
+<p>By default temperature sensors give their readings and monitoring thresholds
+in ºC. The unit can be changed by setting <code>sensor.monitoringConfig().unit</code>:</p>
+<pre class="prettyprint source lang-js"><code>if (sensor.sensorType === &quot;temp&quot;) {
+    // temperature reading and thresholds in ºC:
+    sensor.monitoringConfig().unit = &quot;degC&quot;;
+    // temperature reading and thresholds in ºF:
+    sensor.monitoringConfig().unit = &quot;degF&quot;;
+    // if desired, the change can be saved to become persistent:
+    sensor.monitoringConfig().save().then((mconfig) => {
+        console.log(&quot;saved monitoring config of temp of&quot;, sensor.wirelessTag.name);
+        console.log(&quot;... unit is now&quot;, mconfig.unit);
+    });
+}</code></pre><h3 id="updating-sensor-values-and-tag-information">Updating sensor values and tag information</h3>
+<p>Updating the tag object's data also updates its sensors. <code>tag.update()</code>
+updates a tag object's data from the cloud, and <code>tag.liveUpdate()</code> requests
+that the tag immediately post its latest information.</p>
+<p>To regularly update a tag object's data whenver the tag posts its latest
+information, a loop can be started with <code>tag.startUpdateLoop()</code>, and
+stopped by <code>tag.stopUpdateLoop()</code>.</p>
+<h3 id="promises-versus-callbacks">Promises versus Callbacks</h3>
+<p>The library attempts to support both returning Promises from
+API-calling asynchronous functions, and the traditional callback
+mechanism.</p>
+<p>Callbacks are generally called with an error as the first argument if
+one occurred, and as the second argument with an object that has keys
+<code>object</code> (the object in which the operation was performed), and
+<code>value</code> (the resulting value from that operation) if the operation had
+a result that is not saving or updating a property value of the
+object. For example, in <code>platform.isConnected(cb)</code>, <code>cb</code> will be
+called with <code>{ object: platform, value: false }</code> if the instance
+wasn't yet connected.</p>
+<p>It is considered a bad idea, and not supported (even if it may often
+work) to mix passing callbacks <em>and</em> using the returned Promises.</p>
+<p>Note that callback behaviour is not currently tested as part of the
+test suite, so there could be bugs.</p>
+<h3 id="full-documentation">Full documentation</h3>
+<p>This library should be considered beta. Full API documentation is
+only starting to come into place, and remains lacking for most of its
+functionality:</p>
+<ul>
+<li><a href="http://lappland.io/wirelesstags-js/wirelesstags/0.6.2">Online API documentation</a></li>
+<li>See the <a href="https://github.com/hlapp/wirelesstags-js/tree/release-v0.6.2/examples"><code>examples/</code></a>
+directory for tutorial scripts that give basic, but fully working
+demonstrations of how the library can be used.</li>
+</ul>
+<p>Use at your own peril, and consider looking at the (meanwhile fairly
+comprehensive) tests for guidance.</p>
+<h2 id="how-to-support">How to support</h2>
+<p>Aside from reporting issues and contributing pull requests, if you
+plan to buy from Wireless Sensor Tag, you might consider using
+<a href="https://goo.gl/GxwQbZ">this link</a> to their website. If more than 10
+people do so, and some end up buying, I stand to receive a discount on
+a past purchase of mine, which will allow me to buy other types of
+tags in the future and support those too.</p>
+<h2 id="license">License</h2>
+<p>Available under the <a href="LICENSE">MIT License</a>.</p></article>
+    </section>
+
+
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_platform.html">lib/platform</a></li><li><a href="module-plugins_interval-updater.html">plugins/interval-updater</a></li><li><a href="module-plugins_polling-updater.html">plugins/polling-updater</a></li><li><a href="module-wirelesstags.html">wirelesstags</a></li></ul><h3>Classes</h3><ul><li><a href="module-plugins_interval-updater-TimedTagUpdater.html">TimedTagUpdater</a></li><li><a href="module-plugins_polling-updater-PollingTagUpdater.html">PollingTagUpdater</a></li><li><a href="MonitoringConfig.html">MonitoringConfig</a></li><li><a href="WirelessTag.html">WirelessTag</a></li><li><a href="WirelessTagManager.html">WirelessTagManager</a></li><li><a href="WirelessTagPlatform.html">WirelessTagPlatform</a></li><li><a href="WirelessTagSensor.html">WirelessTagSensor</a></li></ul><h3>Events</h3><ul><li><a href="WirelessTagManager.html#event:data">data</a></li><li><a href="WirelessTagManager.html#event:discover">discover</a></li><li><a href="WirelessTagPlatform.html#event:connect">connect</a></li><li><a href="WirelessTagPlatform.html#event:discover">discover</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-auto-discover.js.html">auto-discover.js</a></li><li><a href="tutorial-auto-update-polling.js.html">auto-update-polling.js</a></li><li><a href="tutorial-read-sensors.js.html">read-sensors.js</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a>
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

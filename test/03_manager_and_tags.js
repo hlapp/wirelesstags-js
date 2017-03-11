@@ -186,15 +186,14 @@ describe('WirelessTagManager:', function() {
 
     describe('#discoverTags()', function() {
         let discoverSpy = sinon.spy();
+        let discoverHandler = (tag) => tags.push(tag);
 
         it('should promise an array of tags associated with it', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
 
             tagManager.on('discover', discoverSpy);
-            tagManager.on('discover', (tag) => {
-                tags.push(tag);
-            });
+            tagManager.on('discover', discoverHandler);
             return expect(tagManager.discoverTags()).
                 to.eventually.satisfy((tagList) => {
                     return tagList.reduce((state, tag) => {
@@ -206,8 +205,42 @@ describe('WirelessTagManager:', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
 
+            tagManager.removeListener('discover', discoverSpy);
+            tagManager.removeListener('discover', discoverHandler);
+
             expect(discoverSpy).to.have.always.been.calledWith(
                 sinon.match.instanceOf(WirelessTag));
+        });
+    });
+
+    describe('#findTagById()', function() {
+        let discoverSpy = sinon.spy();
+
+        it('should promise the tag with the given slaveId', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            tagManager.on('discover', discoverSpy);
+            let tagToTest =
+                tags.length > 0 ? tags[tags.length-1] : { slaveId: 0, uuid: '0' };
+            let findReq = tagManager.findTagById(tagToTest.slaveId);
+
+            return expect(findReq.then((tag) => tag.uuid)).
+                to.eventually.equal(tagToTest.uuid);
+        });
+        it('should reject if there is no tag with the given slaveId', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            return expect(tagManager.findTagById(255)).
+                to.be.rejectedWith(WirelessTagPlatform.InvalidOperationError);
+        });
+        it('should not emit "discover" event for tags found', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            tagManager.removeListener('discover', discoverSpy);
+            return expect(discoverSpy).to.have.not.been.called;
         });
     });
 

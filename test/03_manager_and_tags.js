@@ -260,9 +260,10 @@ describe('WirelessTag:', function() {
         WirelessTagSensor = require('../lib/sensor');
         WirelessTag = require('../lib/tag');
 
-        // find the tag with the most recent time of last update
-        focusTag = tags[0];
-        tags.forEach((t) => {
+        // find the physical tag with the most recent time of last update
+        let physTags = tags.filter((t) => t.isPhysicalTag());
+        focusTag = physTags[0];
+        physTags.forEach((t) => {
             if (t.lastUpdated() > focusTag.lastUpdated()) focusTag = t;
         });
     });
@@ -525,9 +526,8 @@ describe('WirelessTag:', function() {
                tag.on('data', dataSpy);
                tag.on('discover', discoverSpy);
 
-               return expect(tag.liveUpdate()).to.eventually.satisfy((t) => {
-                   return t.lastUpdated() > prevUpdated;
-               });
+               return expect(tag.liveUpdate().then((t) => t.lastUpdated().getTime())).
+                   to.eventually.be.above(prevUpdated.getTime());
            });
         it('should emit \'data\' event due to data update', function() {
             // skip this if we don't have connection information

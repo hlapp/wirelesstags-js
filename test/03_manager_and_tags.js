@@ -669,6 +669,13 @@ describe('WirelessTag:', function() {
  * Test functions of the sensor object
  */
 
+function degCtoF(x, isDelta) {
+    return (x * 9/5.0) + (isDelta ? 0 : 32);
+}
+function degFtoC(x, isDelta) {
+    return (x - (isDelta ? 0 : 32)) * 5.0/9;
+}
+
 describe('WirelessTagSensor:', function() {
 
     var sensors;
@@ -1226,7 +1233,6 @@ describe('WirelessTagSensor:', function() {
                let origUnits = [];
                let readings = [];
                let thresholds = [];
-               let degCtoF = (x, isDelta) => (x * 9/5.0) + (isDelta ? 0 : 32);
                toTest.forEach((sensor) => {
                    origUnits.push(sensor.monitoringConfig().unit);
                    readings.push(sensor.reading);
@@ -1712,4 +1718,177 @@ describe('WirelessTagSensor:', function() {
 
     });
 
+});
+
+describe('Kumostat Tag:', function() {
+    var kumostatTags = [];
+
+    before('identify Kumostat tags', function() {
+        kumostatTags = tags.filter((t) => t.isKumostat());
+    });
+
+    describe('#thermostat', function() {
+
+        it('Kumostat should have property \'thermostat\'', function() {
+            if (kumostatTags.length === 0) return this.skip();
+
+            let toTest = kumostatTags;
+            toTest.forEach((tag) => {
+                expect(tag.thermostat).to.be.an('object');
+            });
+        });
+        it('should give \'isFanOn\' and \'isACHeatOn\' status values', function() {
+            if (kumostatTags.length === 0) return this.skip();
+
+            let toTest = kumostatTags.map((t) => t.thermostat);
+            toTest.forEach((therm) => {
+                expect(therm.isFanOn).to.be.a('boolean');
+                expect(therm.isACHeatOn).to.be.a('boolean');
+            });
+        });
+        it('these should be read-only', function() {
+            if (kumostatTags.length === 0) return this.skip();
+
+            let toTest = kumostatTags.map((t) => t.thermostat);
+            toTest.forEach((therm) => {
+                expect(() => { therm.isFanOn = !therm.isFanOn }).to.throw(TypeError);
+                expect(() => { therm.isACHeatOn = !therm.isACHeatOn }).to.throw(TypeError);
+            });
+        });
+        it('should give \'thresholdLow\' and \'thresholdHigh\' temp thresholds', function() {
+            if (kumostatTags.length === 0) return this.skip();
+
+            let toTest = kumostatTags.map((t) => t.thermostat);
+            toTest.forEach((therm) => {
+                expect(therm.thresholdLow).to.be.a('number');
+                expect(therm.thresholdHigh).to.be.a('number');
+            });
+        });
+        it('should get temp thresholds in °F/°C depending on configured unit', function() {
+            if (kumostatTags.length === 0) return this.skip();
+
+            let toTest = kumostatTags[0];
+            let tempConfig = toTest.tempSensor.monitoringConfig();
+            let origUnit = tempConfig.unit;
+            tempConfig.unit = 'degC';
+            let degCVals = Object.assign({}, toTest.thermostat);
+            tempConfig.unit = 'degF';
+            expect(toTest.thermostat.thresholdLow).
+                to.be.closeTo(degCtoF(degCVals.thresholdLow), 0.101);
+            expect(toTest.thermostat.thresholdHigh).
+                to.be.closeTo(degCtoF(degCVals.thresholdHigh), 0.101);
+            tempConfig.unit = origUnit;
+        });
+        it('should set temp thresholds in °F/°C depending on configured unit', function() {
+            if (kumostatTags.length === 0) return this.skip();
+
+            let toTest = kumostatTags[0];
+            let tempConfig = toTest.tempSensor.monitoringConfig();
+            let origUnit = tempConfig.unit;
+            tempConfig.unit = 'degC';
+            let degCVals = Object.assign({}, toTest.thermostat);
+            tempConfig.unit = 'degF';
+            toTest.thermostat.thresholdLow -= 5;
+            toTest.thermostat.thresholdHigh += 5;
+            expect(degCtoF(degCVals.thresholdLow) - toTest.thermostat.thresholdLow).
+                to.be.closeTo(5, 0.101);
+            expect(toTest.thermostat.thresholdHigh - degCtoF(degCVals.thresholdHigh)).
+                to.be.closeTo(5, 0.101);
+            tempConfig.unit = 'degC';
+            expect(degCVals.thresholdLow - toTest.thermostat.thresholdLow).
+                to.be.closeTo(degFtoC(5, true), 0.101);
+            expect(toTest.thermostat.thresholdHigh - degCVals.thresholdHigh).
+                to.be.closeTo(degFtoC(5, true), 0.101);
+            toTest.thermostat.thresholdLow = degCVals.thresholdLow;
+            toTest.thermostat.thresholdHigh = degCVals.thresholdHigh;
+            tempConfig.unit = origUnit;
+        });
+        it('should give UUID of temperature tag as \'tempTagUUID\' ', function() {
+            if (kumostatTags.length === 0) return this.skip();
+
+            let toTest = kumostatTags.map((t) => t.thermostat);
+            toTest.forEach((therm) => {
+                expect(therm.tempTagUUID).to.be.a('string');
+                expect(therm.tempTagUUID.length).to.equal(kumostatTags[0].uuid.length);
+            });
+        });
+    });
+
+    describe('#thermostat.tempSensor()', function() {
+        var origTempTagUUID;
+
+        before('obtain original tempTagUUID', function() {
+            if (kumostatTags.length === 0) return;
+
+            origTempTagUUID = kumostatTags[0].thermostat.tempTagUUID;
+        });
+
+        after('restore tempTagUUID if changed', function() {
+            if (kumostatTags.length === 0) return;
+
+            if (origTempTagUUID) {
+                kumostatTags[0].thermostat.tempTagUUID = origTempTagUUID;
+            }
+        });
+
+        it('should resolve to a sensor object', function() {
+            if (kumostatTags.length === 0) return this.skip();
+
+            let toTest = kumostatTags[0];
+            return expect(toTest.thermostat.tempSensor()).
+                to.eventually.be.an('object').and.have.property('wirelessTag');
+        });
+        it('should be a temperature sensor', function() {
+            if (kumostatTags.length === 0) return this.skip();
+
+            let therm = kumostatTags[0].thermostat;
+            return expect(therm.tempSensor().then((s) => s.sensorType)).
+                to.eventually.equal('temp');
+        });
+        it('should be a sensor for the tag identified by \'tempTagUUID\'', function() {
+            if (kumostatTags.length === 0) return this.skip();
+
+            let therm = kumostatTags[0].thermostat;
+            return expect(therm.tempSensor().then((s) => s.wirelessTag.uuid)).
+                to.eventually.equal(therm.tempTagUUID);
+        });
+        it('should have valid reading and event state', function(done) {
+            if (kumostatTags.length === 0) return this.skip();
+
+            let therm = kumostatTags[0].thermostat;
+            therm.tempSensor().then((s) => {
+                expect(s.reading).to.be.a('number');
+                expect(s.reading).to.be.above(0);
+                expect(s.eventState).to.be.a('string');
+                expect(s.isArmed()).to.be.a('boolean');
+                done();
+            });
+        });
+        it('should have valid temperature monitoring config', function(done) {
+            if (kumostatTags.length === 0) return this.skip();
+
+            let therm = kumostatTags[0].thermostat;
+            therm.tempSensor().then(
+                (s) => s.monitoringConfig()
+            ).then((mconfig) => {
+                expect(mconfig.notifySettings).to.be.an('object');
+                expect(mconfig.notifySettings.email).to.be.a('string');
+                expect(mconfig.thresholds).to.be.an('object');
+                expect(mconfig.thresholds.lowValue).to.be.a('number');
+                expect(mconfig.thresholds.highValue).to.be.above(0);
+                done();
+            });
+        });
+        it('should be sensor for a different tag if \'tempTagUUID\' is changed', function() {
+            if (kumostatTags.length === 0) return this.skip();
+
+            let therm = kumostatTags[0].thermostat;
+            let otherTag = tags.filter(
+                (t) => t.isPhysicalTag() && t.uuid !== therm.tempTagUUID
+            )[0];
+            therm.tempTagUUID = otherTag.uuid;
+            return expect(therm.tempSensor().then((s) => s.wirelessTag.uuid)).
+                to.eventually.equal(otherTag.uuid);
+        });
+    });
 });

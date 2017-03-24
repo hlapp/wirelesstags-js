@@ -6,7 +6,8 @@
   "scripts": {
     "test": "mocha",
     "test:ci": "npm run test -- test/{01,02,03}_*.js",
-    "test:rw": "npm run test -- test/{04}_*.js",
+    "test:rw": "npm run test -- test/04_*.js",
+    "test:kumostat": "npm run test -- test/05_*.js",
     "lint": "eslint",
     "pretest": "npm run lint -- .",
     "doc": "jsdoc -r -c .jsdoc-conf.json -d ./docs/ .",

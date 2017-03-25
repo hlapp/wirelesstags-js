@@ -556,7 +556,7 @@ describe('WirelessTag:', function() {
             if (credentialsMissing) return this.skip();
 
             tag = tags[0]; // choose the tag with the most sensors
-            let l = tag.sensorCapabilities.length;
+            let l = tag.sensorCapabilities().length;
             for (let t of tags) {
                 if (t.sensorCapabilities().length > l) {
                     tag = t;

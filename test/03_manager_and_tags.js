@@ -807,6 +807,37 @@ describe('WirelessTagSensor:', function() {
            });
     });
 
+    describe('#reset()', function() {
+        it('should be a function for motion and event sensors', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            let toTest = sensors.filter((s) => {
+                return s.sensorType === 'event' || s.sensorType === 'motion';
+            });
+            // skip if there is nothing to test
+            if (toTest.length === 0) this.skip();
+
+            toTest.forEach((sensor) => {
+                expect(sensor.reset).to.be.a('function');
+            });
+        });
+        it('should be undefined for all other sensors', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            let toTest = sensors.filter((s) => {
+                return s.sensorType !== 'event' && s.sensorType !== 'motion';
+            });
+            // skip if there is nothing to test
+            if (toTest.length === 0) this.skip();
+
+            toTest.forEach((sensor) => {
+                expect(sensor.reset).to.equal(undefined);
+            });
+        });
+    });
+
     describe('#monitoringConfig()', function() {
 
         it('should be an object giving the tag\'s monitoring configuration',

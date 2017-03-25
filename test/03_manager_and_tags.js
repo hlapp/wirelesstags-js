@@ -545,6 +545,59 @@ describe('WirelessTag:', function() {
         });
     });
 
+    describe('#createSensor()', function() {
+        let discoverSpy = sinon.spy();
+        let tag;
+        let sensor;
+
+        it("should create sensor object for the given type", function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            // choose the tag with the least sensors
+            let physTags = tags.filter((t) => t.isPhysicalTag());
+            tag = physTags[0];
+            let l = tag.sensorCapabilities().length;
+            for (let t of physTags) {
+                if (t.sensorCapabilities().length < l) {
+                    tag = t;
+                }
+            }
+
+            tag.on('discover', discoverSpy);
+            sensor = tag.createSensor('signal');
+            expect(sensor instanceof WirelessTagSensor).to.equal(true);
+            expect(sensor.sensorType).to.equal('signal');
+            expect(sensor.wirelessTag).to.equal(tag);
+        });
+        it('should not emit "discover" event for sensor created this way', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            tag.removeListener('discover', discoverSpy);
+            return expect(discoverSpy).to.not.have.been.called;
+        });
+        it('created sensor object should be cached as property', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            expect(tag.signalSensor).to.not.equal(undefined);
+            expect(tag.signalSensor).to.equal(sensor);
+            expect(tag.tempSensor).to.equal(undefined);
+        });
+        it('should fail for sensor type not supported by the tag', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            let uncommon = ['water','moisture','light','humidity'];
+            let unsupported = uncommon.filter(
+                (stype) => tag.sensorCapabilities().indexOf(stype) < 0
+            );
+            let f = () => tag.createSensor(unsupported[0]);
+            expect(f).to.throw(Error, /does not support .+ sensor/);
+        });
+    });
+
     describe('#discoverSensors()', function() {
         let discoverSpy = sinon.spy();
         let sensors = [];

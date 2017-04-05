@@ -286,6 +286,8 @@ describe('WirelessTag:', function() {
     });
 
     describe('#name', function() {
+        let eventSpy = sinon.spy();
+
         it('a string, its (user-assigned) name', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
@@ -293,6 +295,25 @@ describe('WirelessTag:', function() {
             tags.map((tag) => { return tag.name }).forEach((value) => {
                 return expect(value).to.be.a('string').and.to.not.be.empty;
             });
+        });
+        it('should be modifiable', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            tags[0].on('update', eventSpy);
+            return expect(() => {
+                let val = tags[0].name;
+                tags[0].name = "xzy";
+                // restore original value
+                tags[0].name = val;
+            }).to.not.throw(TypeError);
+        });
+        it('should trigger \'update\' event upon modification', function() {
+            tags[0].removeListener('update', eventSpy);
+            return expect(eventSpy).to.have.been.called.twice;
+        });
+        it('\'update\' event should fire with the correct arguments', function() {
+            expect(eventSpy).to.have.been.calledWith(tags[0], 'name', 'xzy');
         });
     });
 
@@ -398,6 +419,8 @@ describe('WirelessTag:', function() {
     });
 
     describe('#updateInterval', function() {
+        let eventSpy = sinon.spy();
+
         it('a number, interval between updates in seconds', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
@@ -409,9 +432,30 @@ describe('WirelessTag:', function() {
                                                                         7200);
             });
         });
+        it('should be modifiable', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            tags[0].on('update', eventSpy);
+            return expect(() => {
+                let val = tags[0].updateInterval;
+                tags[0].updateInterval = 1200;
+                // restore original value
+                tags[0].updateInterval = val;
+            }).to.not.throw(TypeError);
+        });
+        it('should trigger \'update\' event upon modification', function() {
+            tags[0].removeListener('update', eventSpy);
+            return expect(eventSpy).to.have.been.called.twice;
+        });
+        it('\'update\' event should fire with the correct arguments', function() {
+            expect(eventSpy).to.have.been.calledWith(tags[0], 'updateInterval', 1200);
+        });
     });
 
     describe('#lowPowerMode', function() {
+        let eventSpy = sinon.spy();
+
         it('a boolean, whether low power mode is enabled', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
@@ -421,6 +465,25 @@ describe('WirelessTag:', function() {
             }).forEach((value) => {
                 return expect(value).to.be.a('boolean');
             });
+        });
+        it('should be modifiable', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            tags[0].on('update', eventSpy);
+            return expect(() => {
+                let val = tags[0].lowPowerMode;
+                tags[0].lowPowerMode = !tags[0].lowPowerMode;
+                // restore original value
+                tags[0].lowPowerMode = val;
+            }).to.not.throw(TypeError);
+        });
+        it('should trigger \'update\' event upon modification', function() {
+            tags[0].removeListener('update', eventSpy);
+            return expect(eventSpy).to.have.been.called.twice;
+        });
+        it('\'update\' event should fire with the correct arguments', function() {
+            expect(eventSpy).to.have.been.calledWith(tags[0], 'lowPowerMode', !tags[0].lowPowerMode);
         });
     });
 

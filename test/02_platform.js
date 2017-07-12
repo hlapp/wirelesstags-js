@@ -185,7 +185,7 @@ describe('WirelessTagPlatform:', function() {
             if (credentialsMissing) return this.skip();
 
             platform.removeListener('discover', discoverSpy);
-            return expect(discoverSpy).to.have.been.called.once;
+            return expect(discoverSpy).to.have.been.calledOnce;
         });
     });
 

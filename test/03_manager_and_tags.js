@@ -937,13 +937,13 @@ describe('WirelessTagSensor:', function() {
                });
            });
 
-        it('should have \'thresholds\' for temp, light, humidity, moisture, current',
+        it('should have \'thresholds\' for temp, light, humidity, moisture',
            function() {
                // skip this if we don't have connection information
                if (credentialsMissing) return this.skip();
 
                let toTest = sensors.filter((s) => {
-                   return ['current','humidity','light','moisture','temp'].
+                   return ['humidity','light','moisture','temp'].
                        indexOf(s.sensorType) >= 0;
                });
                // skip if there is nothing to test

@@ -1,6 +1,6 @@
 "use strict";
 
-var Platform = require('../');
+var Platform = require('wirelesstags');
 var platform = Platform.create();
 
 var tagToReset = process.argv[2];

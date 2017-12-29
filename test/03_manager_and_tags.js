@@ -849,6 +849,124 @@ describe('WirelessTagSensor:', function() {
         });
     });
 
+    describe('#probeType', function() {
+        let toTest;
+
+        it('should be a string for temperature, humidity, and moisture sensors',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               toTest = sensors.filter((s) => {
+                   return ['temp','secondarytemp','humidity','moisture'].
+                        indexOf(s.sensorType) >= 0;
+               });
+               // skip if there is nothing to test
+               if (toTest.length === 0) this.skip();
+
+               toTest.map((sensor) => {
+                   return sensor.probeType;
+               }).forEach((value) => {
+                   return expect(value).to.be.a('string');
+               });
+           });
+        it('should be read-only for these', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+            // skip if there is nothing to test
+            if (toTest.length === 0) this.skip();
+
+            return expect(() => {
+                toTest[0].probeType = "xzy";
+            }).to.throw(TypeError);
+        });
+        it('should be \'Internal\' if alternative probe unsupported', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            toTest = toTest.filter((s) => {
+                let t = s.wirelessTag;
+                return ! (t.isOutdoorTag() || t.canExternalTempProbe());
+            });
+            // skip if there is nothing to test
+            if (toTest.length === 0) this.skip();
+
+            toTest.map((sensor) => {
+                return sensor.probeType;
+            }).forEach((value) => {
+                return expect(value).to.equal('Internal');
+            });
+        });
+        it('should be undefined for other sensors', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            toTest = sensors.filter((s) => {
+                return ['temp','secondarytemp','humidity','moisture'].
+                    indexOf(s.sensorType) < 0;
+            });
+            // skip if there is nothing to test
+            if (toTest.length === 0) this.skip();
+
+            toTest.map((sensor) => {
+                return sensor.probeType;
+            }).forEach((value) => {
+                return expect(value).to.be.undefined;
+            });
+        });
+    });
+
+    describe('#probeDisconnected', function() {
+        let toTest;
+
+        it('should be a boolean or undefined',
+           function() {
+               // skip this if we don't have connection information
+               if (credentialsMissing) return this.skip();
+
+               // skip if there is nothing to test
+               if (sensors.length === 0) this.skip();
+
+               sensors.map((sensor) => {
+                   return sensor.probeDisconnected;
+               }).forEach((value) => {
+                   return expect(value).to.be.oneOf([true, false, undefined]);
+               });
+           });
+        it('should be defined if connection detection is possible', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            toTest = sensors.filter((s) => {
+                return s.wirelessTag.isExternalTempProbe();
+            });
+            // skip if there is nothing to test
+            if (toTest.length === 0) this.skip();
+
+            toTest.map((sensor) => {
+                return sensor.probeDisconnected;
+            }).forEach((value) => {
+                return expect(value).to.not.be.undefined;
+            });
+        });
+        it('should be undefined otherwise', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            toTest = sensors.filter((s) => {
+                return ! s.wirelessTag.isExternalTempProbe();
+            });
+            // skip if there is nothing to test
+            if (toTest.length === 0) this.skip();
+
+            toTest.map((sensor) => {
+                return sensor.probeDisconnected;
+            }).forEach((value) => {
+                return expect(value).to.be.undefined;
+            });
+        });
+    });
+
     describe('#isArmed()', function() {
         it('should be a boolean except for motion and signal sensors',
            function() {

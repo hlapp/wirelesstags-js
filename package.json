@@ -35,7 +35,7 @@
     "deep-equal": ">=1.0.1",
     "promise-retry": "^1.1.1",
     "request": ">=2.79.0",
-    "soap": "^0.22.0",
+    "soap": "^0.23.0",
     "timeout-as-promise": "^1.0.0"
   },
   "devDependencies": {

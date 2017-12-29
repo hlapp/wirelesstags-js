@@ -1244,13 +1244,13 @@ describe('WirelessTagSensor:', function() {
                    let ths = mconf.thresholds;
                    let oldThs = thresholds.shift();
                    expect(sensor.reading).
-                       to.be.closeTo(degCtoF(readings.shift()), 0.101);
+                       to.be.closeTo(degCtoF(readings.shift()), 0.201);
                    expect(ths.lowValue).
-                       to.be.closeTo(degCtoF(oldThs.lowValue), 0.101);
+                       to.be.closeTo(degCtoF(oldThs.lowValue), 0.201);
                    expect(ths.highValue).
-                       to.be.closeTo(degCtoF(oldThs.highValue), 0.101);
+                       to.be.closeTo(degCtoF(oldThs.highValue), 0.201);
                    expect(ths.hysteresis).
-                       to.be.closeTo(degCtoF(oldThs.hysteresis, true), 0.101);
+                       to.be.closeTo(degCtoF(oldThs.hysteresis, true), 0.201);
                    mconf.unit = origUnits.shift();
                });
            });

@@ -711,7 +711,7 @@ describe('WirelessTagSensor:', function() {
                         if (tag.canMotionTimeout()) key += "-hmc";
                         break;
                     case 'temp':
-                        if (tag.isHTU()) key += '-htu';
+                        if (tag.canHighPrecTemp()) key += '-htu';
                         break;
                     }
                     if (!sensorTypeMap[key]) {

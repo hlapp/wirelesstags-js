@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: lib/xforms.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: lib/xforms.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>"use strict";
+
+/* eslint-disable no-invalid-this */
+
+/** @module */
+var xforms = module.exports = {
+    noop: function (x) { return x },
+    mapFunction: function(map) { return function(x) { return map[x] } },
+    revMapFunction: function(map) {
+        return function(x) {
+            for (let key in map) {
+                /* eslint-disable eqeqeq */
+                if (map[key] == x) return key;
+                /* eslint-enable eqeqeq */
+            }
+            throw new RangeError(x + " is not a value in the map");
+        };
+    },
+    valuesInMapFunction: function(map) {
+        return function() {
+            return Object.keys(map).map((k) => map[k]);
+        };
+    },
+    mapObjectFunction: function(map, prop, xformMap) {
+        return function() {
+            // return cached object if there is one
+            if (prop &amp;&amp; this['_'+prop]) return this['_'+prop];
+            // otherwise create from scratch
+            let value = {};
+            let createMappedProp = (obj, key) => {
+                let transform = xforms.noop, revTransform = xforms.noop;
+                if (xformMap &amp;&amp; xformMap[key]) {
+                    transform = xformMap[key][0].bind(this);
+                    revTransform = xformMap[key][1].bind(this);
+                }
+                Object.defineProperty(obj, key, {
+                    enumerable: true,
+                    configurable: true,
+                    get: () => transform(this.data[map[key]]),
+                    set: (x) => {
+                        this.data[map[key]] = revTransform(x);
+                        if ('function' === typeof this.markModified) {
+                            this.markModified(map[key]);
+                            this.markModified((prop ? prop + '.' : '') + key);
+                        }
+                    }
+                });
+            };
+            for (let key in map) {
+                createMappedProp(value, key);
+            }
+            // prevent other properties from being added accidentally
+            Object.seal(value);
+            // cache for the future (as non-enumerable and read-only) and return
+            if (prop) Object.defineProperty(this, '_'+prop, { value: value });
+            return value;
+        };
+    },
+    delegatingFunction: function(delegateTo, propName) {
+        let xformFunc = function(value) {
+            if (value === undefined) {
+                value = this[propName];
+            } else {
+                this[propName] = value;
+            }
+            return value;
+        };
+        return xformFunc.bind(delegateTo);
+    },
+    degCtoF: function(x, isRelative) {
+        return x * 9/5.0 + (isRelative ? 0 : 32);
+    },
+    degFtoC: function(x, isRelative) {
+        return (x - (isRelative ? 0 : 32)) * 5/9.0;
+    },
+    tempToNative: function(isRelative) {
+        return function(x) {
+            let mconfig = this.monitoringConfig ? this.monitoringConfig() : this;
+            let unit = mconfig.unit;
+            return unit === "degF" ? xforms.degFtoC(x, isRelative) : x;
+        };
+    },
+    tempFromNative: function(isRelative) {
+        return function(x) {
+            let mconfig = this.monitoringConfig ? this.monitoringConfig() : this;
+            let unit = mconfig.unit;
+            return unit === "degF" ? xforms.degCtoF(x, isRelative) : x;
+        };
+    },
+    rh2dewPoint: function(x) {
+        let T = this.wirelessTag.data.temperature; // need native dC temperature
+        let b = 17.67, c = 243.5;
+        let m = Math.log(x / 100.0) + b * T / (c + T);
+        return c * m / (b - m);
+    }
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_kumostat.html">lib/kumostat</a></li><li><a href="module-lib_platform.html">lib/platform</a></li><li><a href="module-lib_sensor.html">lib/sensor</a></li><li><a href="module-lib_sensorconfig.html">lib/sensorconfig</a></li><li><a href="module-lib_tag.html">lib/tag</a></li><li><a href="module-lib_util.html">lib/util</a></li><li><a href="module-lib_xforms.html">lib/xforms</a></li><li><a href="module-plugins_interval-updater.html">plugins/interval-updater</a></li><li><a href="module-plugins_polling-updater.html">plugins/polling-updater</a></li><li><a href="module-wirelesstags.html">wirelesstags</a></li></ul><h3>Classes</h3><ul><li><a href="module-plugins_interval-updater-TimedTagUpdater.html">TimedTagUpdater</a></li><li><a href="module-plugins_polling-updater-PollingTagUpdater.html">PollingTagUpdater</a></li><li><a href="MonitoringConfig.html">MonitoringConfig</a></li><li><a href="WirelessTag.html">WirelessTag</a></li><li><a href="WirelessTagManager.html">WirelessTagManager</a></li><li><a href="WirelessTagPlatform.html">WirelessTagPlatform</a></li><li><a href="WirelessTagSensor.html">WirelessTagSensor</a></li></ul><h3>Events</h3><ul><li><a href="WirelessTagManager.html#event:data">data</a></li><li><a href="WirelessTagManager.html#event:discover">discover</a></li><li><a href="WirelessTagPlatform.html#event:connect">connect</a></li><li><a href="WirelessTagPlatform.html#event:discover">discover</a></li></ul><h3>Mixins</h3><ul><li><a href="module-lib_kumostat-kumostat.html">kumostat</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-auto-discover.js.html">auto-discover.js</a></li><li><a href="tutorial-auto-update-polling.js.html">auto-update-polling.js</a></li><li><a href="tutorial-motion-reset.js.html">motion-reset.js</a></li><li><a href="tutorial-read-sensors.js.html">read-sensors.js</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a>
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

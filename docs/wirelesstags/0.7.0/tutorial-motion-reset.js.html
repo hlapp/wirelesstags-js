@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Tutorial: motion-reset.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Tutorial: motion-reset.js</h1>
+
+    <section>
+
+<header>
+    
+
+    <h2>motion-reset.js</h2>
+</header>
+
+<article>
+    <h2 id="actuating-a-sensor">Actuating a sensor</h2>
+<p>Simple script that demonstrates how to actuate a sensor (if it can be
+actuated, such as arming, disarming, or resetting).</p>
+<p>You can query <code>sensor.canArm()</code> and <code>sensor.canDisarm()</code> for whether a sensor
+can be armed and disarmed, respectively. Tags with motion, light, Reed, and
+PIR sensors report a motion event (test with <code>tag.hasEventSensor()</code>) if
+they are armed, and their motion status (<code>Opened</code>, <code>Moved</code>) can be reset.
+(By default, they will reset by their configured timeout unless &quot;closed&quot; again.)</p>
+<p>Here, we find a tag (or the tags) whose name matches the name specified by
+the user, then for each tag get its <code>event</code> sensor and reset its motion
+status. If we can't find a matching tag, or if the matching tag doesn't have
+an event sensor, we print a corresponding error message, and otherwise log
+when the reset is successful and complete.</p>
+<h3 id="create-platform-object">Create platform object</h3>
+<pre class="prettyprint source"><code>var Platform = require('wirelesstags');
+var platform = Platform.create();</code></pre><h3 id="obtain-name-to-match-from-command-line">Obtain name to match from command line</h3>
+<pre class="prettyprint source"><code>var tagToReset = process.argv[2];</code></pre><p>If no name was specified, let's print an informative message and exit:</p>
+<pre class="prettyprint source"><code>if (tagToReset === undefined) {
+    console.log(&quot;Usage: node motion-reset.js &lt;name of tag>&quot;);
+    console.log();
+    console.log(&quot;Resets the motion status of (armed) tags with the given name.&quot;);
+    process.exit(1); // eslint-disable-line no-process-exit
+}</code></pre><h3 id="sign-in-find-tag-s-sensor-s-actuate">Sign in -&gt; find tag(s) -&gt; sensor(s) -&gt; actuate</h3>
+<pre class="prettyprint source"><code>platform.signin(Platform.loadConfig()).then(</code></pre><p>The <a href="WirelessTagPlatform.html#discoverTags"><code>discoverTags()</code></a> method allows us
+to supply a query. (This won't make this faster, because the filtering is
+still client-side, but it saves a few lines of code.)</p>
+<pre class="prettyprint source"><code>    () => platform.discoverTags({ name: tagToReset })
+).then((tags) => {</code></pre><p>Check whether there are tags matching the name, then filter by those that
+report motion events, and ensure we are left with something to work with.
+Note that throwing an exception will reject the promise at that point.</p>
+<pre class="prettyprint source"><code>    if (tags.length === 0) {
+        throw new Error(`error: can't find tag with name ${tagToReset}`);
+    }
+    tags = tags.filter((t) => t.hasEventSensor());
+    if (tags.length === 0) {
+        throw new Error(`error: tag(s) &quot;${tagToReset}&quot; does not sense motion events`);
+    }</code></pre><p>Normally, we would discover all sensors for a tag before doing something
+with the sensors, as that ensures their configuration is fully loaded.
+However, here we only need to deal with one sensor, and we want to neither
+access nor modify its configuration. Hence, we use <code>tag.createSensor()</code> to
+obtain the tag's <code>event</code> sensor (we have already ascertained that it has one),
+and then simply call it's <code>reset()</code> method.</p>
+<pre class="prettyprint source"><code>    let proms = [];
+    tags.forEach((t) => proms.push(t.createSensor('event').reset()));
+    return Promise.all(proms);</code></pre><p>Note that the API calls to actuate the sensors will all run in parallel. If
+you have many tags with the same name, you may want to use rate-limiting.
+Note also that <code>Promise.all()</code> will reject and not wait for others as soon
+as one of the promises rejects. To still complete the reset for other tags
+if one has failed, use an implementation that waits for all promises to have
+settled.</p>
+<p>Finally, report success or failure:</p>
+<pre class="prettyprint source"><code>}).then((sensors) => {
+    sensors.forEach(
+        (sensor) => console.log(`reset motion status for ${sensor.wirelessTag.name}`)
+    );
+}).catch((err) => {
+    // eslint-disable-next-line wrap-regex
+    if (err && err.message && (/^error:/.test(err.message))) {
+        console.error(err.message);
+        process.exitCode = 2;
+    } else {
+        console.error(err.stack ? err.stack : err);
+        process.exitCode = 128;
+    }
+});</code></pre>
+</article>
+
+</section>
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_kumostat.html">lib/kumostat</a></li><li><a href="module-lib_platform.html">lib/platform</a></li><li><a href="module-lib_sensor.html">lib/sensor</a></li><li><a href="module-lib_sensorconfig.html">lib/sensorconfig</a></li><li><a href="module-lib_tag.html">lib/tag</a></li><li><a href="module-lib_util.html">lib/util</a></li><li><a href="module-lib_xforms.html">lib/xforms</a></li><li><a href="module-plugins_interval-updater.html">plugins/interval-updater</a></li><li><a href="module-plugins_polling-updater.html">plugins/polling-updater</a></li><li><a href="module-wirelesstags.html">wirelesstags</a></li></ul><h3>Classes</h3><ul><li><a href="module-plugins_interval-updater-TimedTagUpdater.html">TimedTagUpdater</a></li><li><a href="module-plugins_polling-updater-PollingTagUpdater.html">PollingTagUpdater</a></li><li><a href="MonitoringConfig.html">MonitoringConfig</a></li><li><a href="WirelessTag.html">WirelessTag</a></li><li><a href="WirelessTagManager.html">WirelessTagManager</a></li><li><a href="WirelessTagPlatform.html">WirelessTagPlatform</a></li><li><a href="WirelessTagSensor.html">WirelessTagSensor</a></li></ul><h3>Events</h3><ul><li><a href="WirelessTagManager.html#event:data">data</a></li><li><a href="WirelessTagManager.html#event:discover">discover</a></li><li><a href="WirelessTagPlatform.html#event:connect">connect</a></li><li><a href="WirelessTagPlatform.html#event:discover">discover</a></li></ul><h3>Mixins</h3><ul><li><a href="module-lib_kumostat-kumostat.html">kumostat</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-auto-discover.js.html">auto-discover.js</a></li><li><a href="tutorial-auto-update-polling.js.html">auto-update-polling.js</a></li><li><a href="tutorial-motion-reset.js.html">motion-reset.js</a></li><li><a href="tutorial-read-sensors.js.html">read-sensors.js</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a>
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

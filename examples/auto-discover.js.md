@@ -46,7 +46,7 @@ How long to keep looping?
 For a better overview, we will use the Promise-based API for the
 principle flow here:
 
-    var connect = platform.connect(Platform.loadConfig());
+    var connect = platform.signin(Platform.loadConfig());
 
 ### Create and install event handler for updates
 
@@ -77,7 +77,7 @@ Then we register the handler with the updater for its `data` event:
 
 ### Start auto-update loop
 
-Once `platform.connect()` has succeeded, we can start the auto-update
+Once `platform.signin()` has succeeded, we can start the auto-update
 loop (which now is an auto-discovery with update) loop.
 
 

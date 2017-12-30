@@ -9,7 +9,7 @@ var updater = new TagUpdater(platform, { discoveryMode: true });
 
 var END_AFTER = 30 * 60 * 1000; // value is in milliseconds
 
-var connect = platform.connect(Platform.loadConfig());
+var connect = platform.signin(Platform.loadConfig());
 
 function dataHandler(tag) {
     // We can register new tag objects so their sensors don't need rediscovering

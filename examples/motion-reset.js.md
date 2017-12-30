@@ -35,7 +35,7 @@ If no name was specified, let's print an informative message and exit:
 
 ### Sign in -> find tag(s) -> sensor(s) -> actuate
 
-    platform.connect(Platform.loadConfig()).then(
+    platform.signin(Platform.loadConfig()).then(
 
 The [discoverTags()]{@link WirelessTagPlatform#discoverTags} method allows us
 to supply a query. (This won't make this faster, because the filtering is

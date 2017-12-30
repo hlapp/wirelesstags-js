@@ -12,7 +12,7 @@ if (tagToReset === undefined) {
     process.exit(1); // eslint-disable-line no-process-exit
 }
 
-platform.connect(Platform.loadConfig()).then(function () {
+platform.signin(Platform.loadConfig()).then(function () {
     return platform.discoverTags({ name: tagToReset });
 }).then(function (tags) {
 

@@ -110,7 +110,7 @@ tags with the update instance, and start polling for updates.
 Once the event handlers are set up, connect to the platform. This is
 the same as in {@tutorial read-sensors.js}.
 
-    platform.connect(Platform.loadConfig()).
+    platform.signin(Platform.loadConfig()).
         catch((e) => { console.error(e.stack ? e.stack : e) });
 
 ### Do something with tags and sensors

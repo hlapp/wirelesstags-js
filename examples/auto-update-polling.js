@@ -44,7 +44,7 @@ platform.on('discover', function (manager) {
     });
 }); // end of platform.on()
 
-platform.connect(Platform.loadConfig()).catch(function (e) {
+platform.signin(Platform.loadConfig()).catch(function (e) {
     console.error(e.stack ? e.stack : e);
 });
 

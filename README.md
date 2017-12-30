@@ -18,7 +18,7 @@ and corresponding contributions are welcome too.)
 $ npm install wirelesstags
 ```
 
-The library (specifically, the `platform.connect()` method, see
+The library (specifically, the `platform.signin()` method, see
 below) will need authentication information. The library supports two
 default ways to pick up this information:
 
@@ -92,8 +92,8 @@ var platform = WirelessTagPlatform.create();
 ```
 
 Platform instances emit a `connect` event after successful
-connections, and a `discover` event for each tag manager object. The
-`connect()` and `discoverTagManagers()` methods also return promises,
+logging in, and a `discover` event for each tag manager object. The
+`signin()` and `discoverTagManagers()` methods also return promises,
 the latter with an array of tag manager objects.
 
 Define or obtain connection options:
@@ -115,7 +115,7 @@ platform.on('discover', (tagManager) => {
     console.log("found tag manager", tagManager.name, tagManager.mac);
 });
 // once the listeners are set up we can connect
-platform.connect(opts)
+platform.signin(opts)
 ```
 
 A platform instance (since v0.6.0) caches tag manager objects
@@ -274,8 +274,8 @@ Another way to uniquely (at a moment in time) specify a tag is by tag manager
 for the tags associated with a tag manager):
 
 ```js
-var MAC = 'MAC OF TAG MANAGER';
-var slaveId = 'SLAVEID OF DESIRED TAG';
+var MAC = '123456789ABCDEF' // replace with MAC of tag manager;
+var slaveId = 12; // replace with slave ID of desired tag;
 platform.findTagManager(MAC).then((tagMgr) => {
     if (! tagMgr) throw new Error("tag manager not found");
     return tagMgr.findTagById(slaveId); // rejects if not found
@@ -304,10 +304,9 @@ object (because tag objects cache their sensors, and in practice
 sensors can't be associated with or disassociated from a tag
 dynamically). Either use `tag.eachSensor()` with a callback that
 accepts a sensor object, or use each sensor's individual accessor
-method, which are all named `zzzzSensor()`, where zzzz is the type of
-sensor, for example `tag.lightSensor()`. The method
-`tag.sensorCapabilities()` returns an array of strings denoting the
-possible zzzz values.
+property, which are all named `zzzzSensor`, where zzzz is the type of
+sensor, for example `tag.lightSensor`. The method `tag.sensorCapabilities()`
+returns an array of strings denoting the possible `zzzz` values.
 
 #### Changing the temperature unit
 
@@ -361,26 +360,25 @@ test suite, so there could be bugs.
 
 ### Full documentation
 
-This library should be considered beta. Full API documentation is
-only starting to come into place, and remains lacking for most of its
-functionality:
+As of v0.7.0, API documentation is fairly complete:
 
-* [Online API documentation](http://lappland.io/wirelesstags-js/wirelesstags/0.6.2)
-* See the [`examples/`](https://github.com/hlapp/wirelesstags-js/tree/release-v0.6.2/examples)
+* [Online API documentation](http://lappland.io/wirelesstags-js/wirelesstags/0.7.0)
+* See the [`examples/`](https://github.com/hlapp/wirelesstags-js/tree/release-v0.7.0/examples)
   directory for tutorial scripts that give basic, but fully working
   demonstrations of how the library can be used.
 
-Use at your own peril, and consider looking at the (meanwhile fairly
-comprehensive) tests for guidance.
+This library should be considered beta. Use at your own peril. Aside from the
+API documentation, consider looking at the (fairly extensive) test suite for
+guidance.
 
 ## How to support
 
 Aside from reporting issues and contributing pull requests, if you
-plan to buy from Wireless Sensor Tag, you might consider using
+plan to buy from Wireless Sensor Tag, please consider using
 [this link](https://goo.gl/GxwQbZ) to their website. If more than 10
 people do so, and some end up buying, I stand to receive a discount on
 a past purchase of mine, which will allow me to buy other types of
-tags in the future and support those too.
+tags in the future and support those too. (See [#45] for an example.)
 
 ## License
 
@@ -390,3 +388,4 @@ Available under the [MIT License](LICENSE).
 [JSON Web Service API]: http://mytaglist.com/media/mytaglist.com/apidoc.html
 [Tag Manager]: http://wirelesstag.net/specs.html#manager
 [Wireless Tag]: http://wirelesstag.net/specs.html#tag
+[#45]: https://github.com/hlapp/wirelesstags-js/pull/45#issuecomment-354493269

@@ -362,8 +362,8 @@ test suite, so there could be bugs.
 
 As of v0.7.0, API documentation is fairly complete:
 
-* [Online API documentation](http://lappland.io/wirelesstags-js/wirelesstags/0.7.0)
-* See the [`examples/`](https://github.com/hlapp/wirelesstags-js/tree/release-v0.7.0/examples)
+* [Online API documentation](http://lappland.io/wirelesstags-js/wirelesstags/0.7.1)
+* See the [`examples/`](https://github.com/hlapp/wirelesstags-js/tree/release-v0.7.1/examples)
   directory for tutorial scripts that give basic, but fully working
   demonstrations of how the library can be used.
 

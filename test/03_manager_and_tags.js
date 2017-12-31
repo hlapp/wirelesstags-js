@@ -397,30 +397,35 @@ describe('WirelessTag:', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
 
-            tags.map((tag) => {
-                return tag.sensorCapabilities();
-            }).forEach((value) => {
-                return expect(value).to.satisfy((caps) => {
-                    return caps.reduce((state, cap) => {
-                        return state && ('string' === typeof cap);
-                    }, caps.length > 0);
+            tags.forEach((tag) => {
+                tag.sensorCapabilities().forEach((cap) => {
+                    expect(cap).to.be.a('string');
+                    let funcNameLower = 'has' + cap + 'sensor';
+                    let capFuncName;
+                    for (let k in tag) {
+                        if (k.toLowerCase() === funcNameLower) {
+                            capFuncName = k;
+                            break;
+                        }
+                    }
+                    expect(capFuncName).to.not.equal(undefined);
+                    expect(tag[capFuncName]).to.be.a('function');
+                    expect(tag[capFuncName]()).to.equal(true);
                 });
             });
         });
     });
 
     describe('#hardwareFacts()', function() {
-        it('array of facts that return true for the tag', function() {
+        it('array of facts that are true for the tag', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
 
             tags.forEach((tag) => {
-                expect(tag.hardwareFacts()).to.satisfy((feats) => {
-                    return feats.reduce((state, feat) => {
-                        return state
-                            && ('string' === typeof feat)
-                            && (tag[feat]() === true);
-                    }, feats.length > 0);
+                tag.hardwareFacts().forEach((feat) => {
+                    expect(feat).to.be.a('string');
+                    expect(tag[feat]).to.be.a('function');
+                    expect(tag[feat]()).to.equal(true);
                 });
             });
         });

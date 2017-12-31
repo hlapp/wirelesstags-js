@@ -577,14 +577,6 @@ describe('WirelessTag:', function() {
             tag.removeListener('discover', discoverSpy);
             return expect(discoverSpy).to.not.have.been.called;
         });
-        it('created sensor object should be cached as property', function() {
-            // skip this if we don't have connection information
-            if (credentialsMissing) return this.skip();
-
-            expect(tag.signalSensor).to.not.equal(undefined);
-            expect(tag.signalSensor).to.equal(sensor);
-            expect(tag.tempSensor).to.equal(undefined);
-        });
         it('should fail for sensor type not supported by the tag', function() {
             // skip this if we don't have connection information
             if (credentialsMissing) return this.skip();
@@ -594,6 +586,73 @@ describe('WirelessTag:', function() {
                 (stype) => tag.sensorCapabilities().indexOf(stype) < 0
             );
             let f = () => tag.createSensor(unsupported[0]);
+            expect(f).to.throw(Error, /does not support .+ sensor/);
+        });
+    });
+
+    describe('#initializeSensor()', function() {
+        let discoverSpy = sinon.spy();
+        let tag;
+        let sensor;
+
+        it("should obtain sensor object for the given type", function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            // choose a physical tag with a temperature sensor
+            let physTags = tags.filter((t) => t.isPhysicalTag() && t.hasTempSensor());
+            if (physTags.length === 0) return this.skip();
+
+            tag = physTags[0];
+            tag.on('discover', discoverSpy);
+
+            return expect(tag.initializeSensor('temp')).
+                to.eventually.be.an.instanceof(WirelessTagSensor);
+        });
+        it('should emit "discover" event for sensor created this way', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            tag.removeListener('discover', discoverSpy);
+            if (discoverSpy.firstCall && discoverSpy.firstCall.args[0]) {
+                sensor = discoverSpy.firstCall.args[0];
+            }
+            return expect(discoverSpy).to.have.been.calledOnce;
+        });
+        it('obtained sensor object should now be cached as property', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            expect(tag.tempSensor).to.not.equal(undefined);
+            if (sensor) expect(tag.tempSensor).to.equal(sensor);
+            expect(tag.signalSensor).to.equal(undefined);
+        });
+        it("should yield cached object when invoked for same sensor type again", function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            if (! sensor) sensor = tag.tempSensor;
+            discoverSpy.reset();
+            tag.on('discover', discoverSpy);
+            return expect(tag.initializeSensor('temp')).
+                to.eventually.equal(sensor);
+        });
+        it('should not emit "discover" event when sensor was cached', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            tag.removeListener('discover', discoverSpy);
+            return expect(discoverSpy).to.not.have.been.called;
+        });
+        it('should fail for sensor type not supported by the tag', function() {
+            // skip this if we don't have connection information
+            if (credentialsMissing) return this.skip();
+
+            let uncommon = ['water','moisture','light','humidity'];
+            let unsupported = uncommon.filter(
+                (stype) => tag.sensorCapabilities().indexOf(stype) < 0
+            );
+            let f = () => tag.initializeSensor(unsupported[0]);
             expect(f).to.throw(Error, /does not support .+ sensor/);
         });
     });

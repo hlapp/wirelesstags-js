@@ -129,11 +129,17 @@ function PollingTagUpdater(platform, options) {
         enumerable: true,
         get: function() { return this._platform },
         set: function(p) {
-            if (this._platform) {
+            if (this._platform && this._platform !== p) {
                 this._platform.removeListener('disconnect', h);
+                if (this.options.log === this._platform.log) {
+                    this.options.log = undefined;
+                }
             }
             this._platform = p;
-            if (p) p.on('disconnect', h);
+            if (p) {
+                if (! this.options.log) this.options.log = p.log;
+                p.on('disconnect', h);
+            }
         }
     });
     this.platform = platform;
@@ -423,8 +429,7 @@ function pollForNextUpdate(client, tagManager, callback) {
                 if (callback) callback(null, { object: tagManager,
                                                value: tagDataList });
             } catch (e) {
-                console.error("error in callback:");
-                console.error(e.stack ? e.stack : e);
+                logError(console, e);
                 // no good reason to escalate an error thrown by callback
             }
             resolve(tagDataList);
@@ -437,6 +442,24 @@ function pollForNextUpdate(client, tagManager, callback) {
         });
     }
     return req;
+}
+
+/**
+ * Logs the given error to the given log facility.
+ *
+ * @private
+ */
+function logError(log, err) {
+    let debug = log.debug || log.trace || log.log;
+    if (err.Fault) {
+        log.error(err.Fault);
+        if (err.response && err.response.request) {
+            log.error("URL: " + err.response.request.href);
+        }
+        if (err.body) debug(err.body);
+    } else {
+        log.error(err.stack ? err.stack : err);
+    }
 }
 
 module.exports = PollingTagUpdater;

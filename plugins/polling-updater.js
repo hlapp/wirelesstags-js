@@ -248,9 +248,21 @@ PollingTagUpdater.prototype.startUpdateLoop = function(waitTime, callback) {
             // reset wait time upon success
             waitTime = undefined;
         }).catch((err) => {
-            console.error(err.stack ? err.stack : err);
-            waitTime = waitTime < WAIT_AFTER_ERROR ?
-                WAIT_AFTER_ERROR : waitTime * 2;
+            let log = this.options.log || console;
+            waitTime =
+                waitTime < WAIT_AFTER_ERROR ? WAIT_AFTER_ERROR : waitTime * 2;
+            if (err.Fault && this.platform) {
+                return this.platform.isSignedIn().then((signedIn) => {
+                    if (signedIn) throw err;
+                    // if not signed in anymore we'll treat this as sufficient
+                    // explanation, and what's left is to stop polling
+                    log.error('unexpectedly signed out of Wireless Tags, stopping updates');
+                    this.stopUpdateLoop();
+                }).catch((e) => {
+                    logError(log, e);
+                });
+            }
+            logError(log, err);
         }).then(() => {
             // with the preceding catch() this is in essence a finally()
             if (this._updateTimer) {

@@ -231,7 +231,7 @@ PollingTagUpdater.prototype.startUpdateLoop = function(waitTime, callback) {
                                      mgrs.length === 1 ? mgrs[0] : undefined,
                                      callback);
         }).then((tagDataList) => {
-            const EMPTY = { size: () => 0 };
+            const EMPTY = { size: 0 };
             let newTagProms = [];
             tagDataList.forEach((tagData) => {
                 let tagObjs = this.tagsByUUID[tagData.uuid] || EMPTY;
